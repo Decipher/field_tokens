@@ -1,0 +1,4 @@
+name = Field tokens
+description = Adds formatted field and field property tokens.
+core = 7.x
+dependencies[] = token
