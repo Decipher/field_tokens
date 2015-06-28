@@ -4,3 +4,14 @@
  * @file
  * Core functions for the Field tokens module.
  */
+
+/**
+ * Implements hook_module_implements_alter().
+ */
+function field_tokens_module_implements_alter(&$implementations, $hook) {
+  // Prevent the Formatted Field tokens module from interfering with the Field
+  // tokens module by suppressing it's hook_tokens function.
+  if ($hook == 'tokens' && in_array('formatted_field_tokens', array_keys($implementations))) {
+    unset($implementations['formatted_field_tokens']);
+  }
+}
