@@ -53,5 +53,4 @@ The format is:
 ## TODO
 -------
 
-- Add tests.
 - Add help module integration.
