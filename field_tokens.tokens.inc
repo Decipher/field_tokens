@@ -152,7 +152,7 @@ function field_tokens_formatted_tokens($entity, $instance, $items, $args) {
     $cloned_entity->{$field_name}[$langcode] = $items;
 
     // Render formatted field.
-    $element = field_view_field($instance['entity_type'], $entity, $instance['field_name'], $display, $langcode);
+    $element = field_view_field($entity_type, $cloned_entity, $field_name, $display, $langcode);
     if ($element) {
       foreach (element_children($element) as $delta) {
         $output .= render($element[$delta]);
