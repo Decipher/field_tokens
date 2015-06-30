@@ -6,6 +6,18 @@
  */
 
 /**
+ * Include additional files.
+ */
+$dirname  = dirname(__FILE__) . '/includes';
+$includes = file_scan_directory($dirname, '/.inc$/');
+foreach (module_list() as $module) {
+  $file = "{$dirname}/{$module}.inc";
+  if (isset($includes[$file])) {
+    require_once $file;
+  }
+}
+
+/**
  * Implements hook_module_implements_alter().
  */
 function field_tokens_module_implements_alter(&$implementations, $hook) {
@@ -13,5 +25,16 @@ function field_tokens_module_implements_alter(&$implementations, $hook) {
   // tokens module by suppressing it's hook_tokens function.
   if ($hook == 'tokens' && in_array('formatted_field_tokens', array_keys($implementations))) {
     unset($implementations['formatted_field_tokens']);
+  }
+}
+
+/**
+ * Implements hook_enable().
+ */
+function field_tokens_enable() {
+  if (module_exists('formatted_field_tokens')) {
+    $message = t('The Formatted Field tokens module is superseded by the Field tokens module, and should be disabled and deleted.');
+    drupal_set_message($message, 'warning');
+    watchdog('field_tokens', $message, array(), WATCHDOG_ERROR);
   }
 }

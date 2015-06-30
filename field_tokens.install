@@ -17,7 +17,7 @@ function field_tokens_requirements($phase) {
     $requirements['formatted_field_tokens'] = array(
       'title'       => $t('Formatted Field tokens'),
       'value'       => $t('Enabled'),
-      'description' => t('The Formatted Field tokens module is superseded by the Field tokens module, and should be disabled and deleted.'),
+      'description' => $t('The Formatted Field tokens module is superseded by the Field tokens module, and should be disabled and deleted.'),
       'severity'    => REQUIREMENT_WARNING,
     );
     if ($phase == 'install') {

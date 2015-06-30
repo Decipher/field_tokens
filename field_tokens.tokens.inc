@@ -6,24 +6,89 @@
  */
 
 /**
+ * Implements hook_token_info().
+ */
+function field_tokens_token_info() {
+  $field_types = field_info_field_types();
+  $formatters  = field_info_formatter_types();
+
+  $types['field_property'] = array(
+    'name'        => t('Field properties'),
+    'description' => t(''),
+    'needs-data'  => 'field_property',
+  );
+
+  $tokens['field_property']['?'] = array(
+    'name'        => t('Property name'),
+    'description' => t('A property of the specified field; Replace \'?\' with a valid property for the specified field (e.g., value).'),
+  );
+
+  // Build token types for each field type.
+  foreach ($field_types as $field_type_name => $field_type_info) {
+    $types["formatted_field-{$field_type_name}"] = array(
+      'name'        => t('Formatted @label field', array('@label' => $field_type_info['label'])),
+      'description' => t('Tokens related to Formatted @label fields.', array('@label' => $field_type_info['label'])),
+      'needs-data'  => "formatted_field-{$field_type_name}",
+    );
+
+    // Build tokens for each formatter of the current field type.
+    foreach ($formatters as $formatter_name => $formatter_info) {
+      if (in_array($field_type_name, $formatter_info['field types'])) {
+        $test = 1;
+
+        $tokens["formatted_field-{$field_type_name}"]["{$formatter_name}:?"] = array(
+          'name'        => $formatter_info['label'],
+          'description' => t('@label formatter.', array('@label' => $formatter_info['label'])) . ' ',
+        );
+
+        // Adjust token name and description if formatter has no settings.
+        if (empty($formatter_info['settings'])) {
+          $tokens["formatted_field-{$field_type_name}"]["{$formatter_name}"] = $tokens["formatted_field-{$field_type_name}"]["{$formatter_name}:?"];
+          $tokens["formatted_field-{$field_type_name}"]["{$formatter_name}"]['description'] .= t('Has no settings.');
+
+          unset($tokens["formatted_field-{$field_type_name}"]["{$formatter_name}:?"]);
+        }
+
+        // Append settings list to description.
+        else {
+          $settings = array();
+          foreach ($formatter_info['settings'] as $key => $default) {
+            $settings[] = $key;
+          }
+          $tokens["formatted_field-{$field_type_name}"]["{$formatter_name}:?"]['description'] .= t('Replace \'?\' with formatter settings in the following format: \'SETTING-VALUE:SETTING-VALUE-...\'.<br /> Available settings: @settings', array('@settings' => implode(', ', $settings)));
+        }
+      }
+    }
+  }
+
+  return array(
+    'types'  => $types,
+    'tokens' => $tokens,
+  );
+}
+
+/**
  * Implements hook_token_info_alter().
  */
 function field_tokens_token_info_alter(&$data) {
   $token_info = _token_field_info();
 
   foreach ($token_info as $field_name => $info) {
+    $field = field_info_field($field_name);
     foreach ($info['token types'] as $token_type) {
       if (isset($data['tokens'][$token_type])) {
         // Formatted field tokens.
-        $data['tokens'][$token_type]["{$field_name}-formatted:DELTA(S):?"] = array(
-          'name'        => t('Formatted @label field', array('@label' => $info['label'])),
-          'description' => t('The Formatted Field token provides one or many field values rendered via the default or specified field formatter.<br />The format is [PREFIX:DELTA(S):FORMATTER:FORMATTER_SETTING_KEY-FORMATTER_SETTING_VALUE:...] (e.g. [node:field_image:0,1:image:image_style-thumbnail]).'),
+        $data['tokens'][$token_type]["{$field_name}-formatted:?"] = array(
+          'name'        => t('@label: Formatted field', array('@label' => $info['label'])),
+          'description' => t('The formatted value of one or more @label field values. Replace \'?\' with a comma seperated list of deltas (e.g., \'0,1\').', array('@label' => $info['label'])),
+          'type'        => "formatted_field-{$field['type']}",
         );
 
         // Field property tokens.
-        $data['tokens'][$token_type]["{$field_name}-property:DELTA:?"] = array(
-          'name'        => t('@label field properties', array('@label' => $info['label'])),
-          'description' => t('The Field Property token provides raw value of a specified field property.<br />The format is [PREFIX:DELTA:PROPERTY] (e.g. [node:field_image:0:uri]).'),
+        $data['tokens'][$token_type]["{$field_name}-property:?"] = array(
+          'name'        => t('@label: Field properties', array('@label' => $info['label'])),
+          'description' => t('Field properties from one or more @label field values. Replace \'?\' with a comma seperated list of deltas (e.g., \'0,1\').', array('@label' => $info['label'])),
+          'type'        => 'field_property',
         );
       }
     }
@@ -45,30 +110,39 @@ function field_tokens_tokens($type, $tokens, array $data = array(), array $optio
   $token_info   = _token_field_info();
   $replacements = array();
 
+  $token_types = array(
+    'formatted' => array(
+      'token_type' => 'formatted_field',
+      'field_type' => TRUE
+    ),
+    'property'  => array(
+      'token_type' => 'field_property',
+      'field_type' => FALSE
+    ),
+  );
+
+  // Entity tokens.
   if ($type == 'entity' && !empty($data['entity'])) {
     $entity      = $data['entity'];
     $entity_type = $data['entity_type'];
     list($id, $vid, $bundle_name) = entity_extract_ids($entity_type, $data['entity']);
     $instances = field_info_instances($entity_type, $bundle_name);
 
-    $token_types = array('formatted', 'property');
     foreach ($token_info as $field_name => $token_field_info) {
       if (isset($instances[$field_name])) {
         $instance = $instances[$field_name];
-        foreach ($token_types as $token_type) {
+        foreach ($token_types as $token_type => $token_type_info) {
           $field_tokens = token_find_with_prefix($tokens, "{$field_name}-{$token_type}");
           if ($field_tokens) {
+            $field           = field_info_field($field_name);
+            $langcode        = field_language($entity_type, $entity, $field_name);
+            $token_data_type = $token_type_info['field_type'] ? "{$token_type_info['token_type']}-{$field['type']}" : $token_type_info['token_type'];
             foreach ($field_tokens as $name => $original) {
-              $parts  = explode(':', $name);
-              $deltas = explode(',', array_shift($parts));
+              $items = field_get_items($entity_type, $entity, $field_name);
+              if (!empty($items)) {
+                $parts  = explode(':', $name);
+                $deltas = explode(',', array_shift($parts));
 
-              // Field info.
-              $field    = field_info_field($field_name);
-              $langcode = field_language($entity_type, $entity, $field_name);
-              $items    = field_get_items($entity_type, $entity, $field_name);
-
-              if (!empty($parts) && !empty($items)) {
-                // Ensure that all referenced deltas exist.
                 $diff = array_diff(array_values($deltas), array_keys($items));
                 if (empty($diff)) {
                   $token_items = array();
@@ -90,15 +164,14 @@ function field_tokens_tokens($type, $tokens, array $data = array(), array $optio
                     if ((function_exists($function) && $function($item, $field))) {
                       continue(2);
                     }
-
-                    $function = "field_tokens_{$token_type}_tokens";
-                    if (function_exists($function)) {
-                      $result = $function($entity, $instance, $token_items, $parts);
-                      if ($result) {
-                        $replacements[$original] = $result;
-                      }
-                    }
                   }
+
+                  // Pass through to chained field tokens.
+                  $chained_data = $data + array(
+                      $token_data_type => $token_items,
+                      'field_name'     => $field_name
+                    );
+                  $replacements += token_generate($token_data_type, array(implode(':', $parts) => $original), $chained_data, $options);
                 }
               }
             }
@@ -108,89 +181,80 @@ function field_tokens_tokens($type, $tokens, array $data = array(), array $optio
     }
   }
 
-  return $replacements;
-}
-
-/**
- * Tokens callback for 'formatted' field tokens.
- *
- * @param $entity
- * @param $instance
- * @param $items
- * @param $args
- *
- * @return bool|string
- */
-function field_tokens_formatted_tokens($entity, $instance, $items, $args) {
-  if (!empty($args)) {
-    $output = '';
-
-    $formatter          = array_shift($args);
-    $formatter_settings = array();
-    foreach ($args as $formatter_setting) {
-      list($name, $value) = explode('-', $formatter_setting);
-      $formatter_settings[$name] = $value;
-    }
-    if (!empty($formatters[$formatter]['settings'])) {
-      $formatter_settings += $formatters[$formatter]['settings'];
-    }
-
-    $entity_type = $instance['entity_type'];
-    $field_name  = $instance['field_name'];
-    $field       = field_info_field($field_name);
-    $langcode    = field_language($entity_type, $entity, $field_name);
-    $display     = $instance['display']['default'];
-
+  // Formatted field tokens.
+  elseif (strpos($type, 'formatted_field') === 0 && isset($data[$type]) && isset($data['entity_type']) && isset($data['entity'])) {
+    list(, $field_type) = explode('-', $type);
+    $entity_type = $data['entity_type'];
+    $entity      = $data['entity'];
+    $field_name  = $data['field_name'];
+    $field       = field_info_field_types($field_type);
+    list($id, $vid, $bundle_name) = entity_extract_ids($entity_type, $entity);
+    $instance   = field_info_instance($entity_type, $field_name, $bundle_name);
+    $display    = $instance['display']['default'];
+    $langcode   = field_language($entity_type, $entity, $field_name);
+    $items      = $data[$type];
     $formatters = field_info_formatter_types();
-    if (!is_null($formatter) && isset($formatters[$formatter]) && in_array($field['type'], $formatters[$formatter]['field types'])) {
-      $display['type']     = $formatter;
-      $display['settings'] = isset($formatter_settings) ? $formatter_settings : $formatters[$formatter]['settings'];
-    }
 
-    // Clone entitiy and attach specified items.
-    $cloned_entity                           = clone $entity;
-    $cloned_entity->{$field_name}[$langcode] = $items;
-
-    // Render formatted field.
-    $element = field_view_field($entity_type, $cloned_entity, $field_name, $display, $langcode);
-    if ($element) {
-      foreach (element_children($element) as $delta) {
-        $output .= render($element[$delta]);
+    foreach ($tokens as $args => $original) {
+      $args = explode(':', $args);
+      if (empty($args[0])) {
+        $formatter          = $field['default_formatter'];
+        $formatter_settings = array();
       }
-    }
-    if (!empty($output)) {
-      return $output;
+      else {
+        $formatter          = array_shift($args);
+        $formatter_settings = array();
+        foreach ($args as $formatter_setting) {
+          list($name, $value) = explode('-', $formatter_setting);
+          $formatter_settings[$name] = $value;
+        }
+      }
+
+      if (!is_null($formatter) && isset($formatters[$formatter]) && in_array($field_type, $formatters[$formatter]['field types'])) {
+        if (!empty($formatters[$formatter]['settings'])) {
+          $formatter_settings += $formatters[$formatter]['settings'];
+        }
+
+        // Inject formatter and formatter settings into $display.
+        $display['type']     = $formatter;
+        $display['settings'] = isset($formatter_settings) ? $formatter_settings : $formatters[$formatter]['settings'];
+
+        // Clone entity and attach specified items.
+        $cloned_entity                           = clone $entity;
+        $cloned_entity->{$field_name}[$langcode] = $items;
+
+        $output  = '';
+        $element = field_view_field($entity_type, $cloned_entity, $field_name, $display, $langcode);
+        if ($element) {
+          foreach (element_children($element) as $delta) {
+            $output .= render($element[$delta]);
+          }
+        }
+        if (!empty($output)) {
+          $replacements[$original] = $output;
+        }
+      }
     }
   }
 
-  return FALSE;
-}
+  // Field property tokens.
+  elseif ($type == 'field_property') {
+    foreach ($tokens as $args => $original) {
+      $output = array();
 
-/**
- * Tokens callback for 'property' field tokens.
- *
- * @param $entity
- * @param $instance
- * @param $items
- * @param $args
- *
- * @return bool|string
- */
-function field_tokens_property_tokens($entity, $instance, $items, $args) {
-  if (!empty($args)) {
-    $output = array();
-
-    $property = array_shift($args);
-    foreach ($items as $item) {
-      if (isset($item[$property])) {
-        $output[] = $item[$property];
+      $args     = explode(':', $args);
+      $property = array_shift($args);
+      foreach ($data['field_property'] as $item) {
+        if (isset($item[$property])) {
+          $output[] = $item[$property];
+        }
       }
-    }
 
-    if (!empty($output)) {
-      return implode(', ', $output);
+      if (!empty($output)) {
+        $replacements[$original] = implode(', ', $output);
+      }
     }
   }
 
-  return FALSE;
+  return $replacements;
 }
