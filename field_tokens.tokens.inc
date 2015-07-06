@@ -34,8 +34,6 @@ function field_tokens_token_info() {
     // Build tokens for each formatter of the current field type.
     foreach ($formatters as $formatter_name => $formatter_info) {
       if (in_array($field_type_name, $formatter_info['field types'])) {
-        $test = 1;
-
         $tokens["formatted_field-{$field_type_name}"]["{$formatter_name}:?"] = array(
           'name'        => $formatter_info['label'],
           'description' => t('@label formatter.', array('@label' => $formatter_info['label'])) . ' ',
