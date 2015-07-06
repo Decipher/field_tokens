@@ -121,6 +121,15 @@ function field_tokens_tokens($type, $tokens, array $data = array(), array $optio
     ),
   );
 
+  // Standardize entity based data.
+  $entities = entity_get_info();
+  if (isset($entities[$type]) && isset($data[$type])) {
+    $data['entity']      = $data[$type];
+    $data['entity_type'] = $type;
+
+    $type = 'entity';
+  }
+
   // Entity tokens.
   if ($type == 'entity' && !empty($data['entity'])) {
     $entity      = $data['entity'];
