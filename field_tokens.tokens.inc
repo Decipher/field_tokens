@@ -34,17 +34,16 @@ function field_tokens_token_info() {
     // Build tokens for each formatter of the current field type.
     foreach ($formatters as $formatter_name => $formatter_info) {
       if (in_array($field_type_name, $formatter_info['field types'])) {
-        $tokens["formatted_field-{$field_type_name}"]["{$formatter_name}:?"] = array(
+        $tokens["formatted_field-{$field_type_name}"]["{$formatter_name}"] = array(
           'name'        => $formatter_info['label'],
           'description' => t('@label formatter.', array('@label' => $formatter_info['label'])) . ' ',
+          'dynamic' => TRUE,
         );
 
         // Adjust token name and description if formatter has no settings.
         if (empty($formatter_info['settings'])) {
-          $tokens["formatted_field-{$field_type_name}"]["{$formatter_name}"] = $tokens["formatted_field-{$field_type_name}"]["{$formatter_name}:?"];
           $tokens["formatted_field-{$field_type_name}"]["{$formatter_name}"]['description'] .= t('Has no settings.');
-
-          unset($tokens["formatted_field-{$field_type_name}"]["{$formatter_name}:?"]);
+          unset($tokens["formatted_field-{$field_type_name}"]["{$formatter_name}"]['dynamic']);
         }
 
         // Append settings list to description.
@@ -53,7 +52,7 @@ function field_tokens_token_info() {
           foreach ($formatter_info['settings'] as $key => $default) {
             $settings[] = $key;
           }
-          $tokens["formatted_field-{$field_type_name}"]["{$formatter_name}:?"]['description'] .= t('Replace \'?\' with formatter settings in the following format: \'SETTING-VALUE:SETTING-VALUE-...\'.<br /> Available settings: @settings', array('@settings' => implode(', ', $settings)));
+          $tokens["formatted_field-{$field_type_name}"]["{$formatter_name}"]['description'] .= t('Replace \'?\' with formatter settings in the following format: \'SETTING-VALUE:SETTING-VALUE-...\'.<br /> Available settings: @settings', array('@settings' => implode(', ', $settings)));
         }
       }
     }
@@ -76,17 +75,19 @@ function field_tokens_token_info_alter(&$data) {
     foreach ($info['token types'] as $token_type) {
       if (isset($data['tokens'][$token_type])) {
         // Formatted field tokens.
-        $data['tokens'][$token_type]["{$field_name}-formatted:?"] = array(
+        $data['tokens'][$token_type]["{$field_name}-formatted"] = array(
           'name'        => t('@label: Formatted field', array('@label' => $info['label'])),
           'description' => t('The formatted value of one or more @label field values. Replace \'?\' with a comma seperated list of deltas (e.g., \'0,1\').', array('@label' => $info['label'])),
           'type'        => "formatted_field-{$field['type']}",
+          'dynamic'     => TRUE,
         );
 
         // Field property tokens.
-        $data['tokens'][$token_type]["{$field_name}-property:?"] = array(
+        $data['tokens'][$token_type]["{$field_name}-property"] = array(
           'name'        => t('@label: Field properties', array('@label' => $info['label'])),
           'description' => t('Field properties from one or more @label field values. Replace \'?\' with a comma seperated list of deltas (e.g., \'0,1\').', array('@label' => $info['label'])),
           'type'        => 'field_property',
+          'dynamic'     => TRUE,
         );
       }
     }
