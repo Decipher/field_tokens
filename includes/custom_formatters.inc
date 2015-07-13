@@ -10,6 +10,7 @@
  */
 function field_tokens_custom_formatters_token_tree_types_alter(&$token_types, $field_type) {
   $token_types[] = "formatted_field-{$field_type}";
+  $token_types[] = 'field_property';
 }
 
 /**
