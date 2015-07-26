@@ -37,7 +37,7 @@ function field_tokens_token_info() {
         $tokens["formatted_field-{$field_type_name}"]["{$formatter_name}"] = array(
           'name'        => $formatter_info['label'],
           'description' => t('@label formatter.', array('@label' => $formatter_info['label'])) . ' ',
-          'dynamic' => TRUE,
+          'dynamic'     => TRUE,
         );
 
         // Adjust token name and description if formatter has no settings.
@@ -185,6 +185,7 @@ function field_tokens_tokens($type, $tokens, array $data = array(), array $optio
     list(, $field_type) = explode('-', $type);
     $entity_type = $data['entity_type'];
     $entity      = $data['entity'];
+    $entity_info = entity_get_info($entity_type);
     $field_name  = $data['field_name'];
     $field       = field_info_field_types($field_type);
     list($id, $vid, $bundle_name) = entity_extract_ids($entity_type, $entity);
@@ -218,11 +219,14 @@ function field_tokens_tokens($type, $tokens, array $data = array(), array $optio
         $display['type']     = $formatter;
         $display['settings'] = isset($formatter_settings) ? $formatter_settings : $formatters[$formatter]['settings'];
 
-        // Clone entity and attach specified items.
-        $cloned_entity                           = clone $entity;
+        // Clone entity, adjust state and attach specified items.
+        $cloned_entity = clone $entity;
+        unset($cloned_entity->_field_view_prepared);
+        $cloned_entity->_field_tokens            = TRUE;
         $cloned_entity->{$field_name}[$langcode] = $items;
 
-        $output  = '';
+        $output = '';
+        field_attach_prepare_view($entity_type, array($cloned_entity->{$entity_info['entity keys']['id']} => $cloned_entity), 'full');
         $element = field_view_field($entity_type, $cloned_entity, $field_name, $display, $langcode);
         if ($element) {
           foreach (element_children($element) as $delta) {
