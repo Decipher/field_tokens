@@ -45,7 +45,8 @@ function field_tokens_enable() {
 function field_tokens_field_display_alter(&$display, $context) {
   // If field is rendered via Field Tokens, ensure it is visible.
   if ($display['type'] == 'hidden' && isset($context['entity']->_field_tokens) && $context['entity']->_field_tokens) {
-    $field_type      = field_info_field_types($context['field']['type']);
-    $display['type'] = $field_type['default_formatter'];
+    $field_type        = field_info_field_types($context['field']['type']);
+    $display['type']   = $field_type['default_formatter'];
+    $display['module'] = $field_type['module'];
   }
 }
