@@ -2,4 +2,9 @@ name = Field tokens
 description = Adds formatted field and field property tokens.
 core = 7.x
 dependencies[] = token
-files[] = field_tokens.test
+
+
+
+; Files - Simpletest
+
+files[] = tests/field_tokens.test
