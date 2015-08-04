@@ -1,5 +1,6 @@
 # Field tokens
---------------
+
+[![Build Status](https://travis-ci.org/Decipher/field_tokens.svg)](https://travis-ci.org/Decipher/field_tokens)
 
 The Field tokens module add two additional types of field tokens; Formatted
 fields and field properties.
@@ -37,20 +38,11 @@ The format is:
 
 
 ## Required modules
--------------------
 
 - [Token](https://www.drupal.org/project/token)
 
 
 
 ## Recommended modules
-----------------------
 
 - [Token filter](https://www.drupal.org/project/token_filter)
-
-
-
-## TODO
--------
-
-- Add help module integration.
