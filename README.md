@@ -33,16 +33,10 @@ The format is:
 [PREFIX:DELTA(S):PROPERTY]
 ```
 
-(e.g. **[node:field_image-formatted:0:uri]**).
+(e.g. **[node:field_image-formatted:0:entity:url]**).
 
 
 
 ## Required modules
 
 - [Token](https://www.drupal.org/project/token)
-
-
-
-## Recommended modules
-
-- [Token filter](https://www.drupal.org/project/token_filter)

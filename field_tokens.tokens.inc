@@ -23,22 +23,23 @@ function field_tokens_token_info() {
   $formatter_manager = \Drupal::service('plugin.manager.field.formatter');
   $formatters = $formatter_manager->getDefinitions();
 
-  $types['field_property'] = [
-    'name'       => t('Field properties'),
-    'needs-data' => 'field_property',
-  ];
+  /** @var \Drupal\field\FieldConfigStorage $field_config_storage */
+  $field_config_storage = \Drupal::entityTypeManager()
+    ->getStorage('field_config');
+  $fields = $field_config_storage->loadMultiple();
 
-  $tokens['field_property']['?'] = [
-    'name'        => t('Property name'),
-    'description' => t("A property of the specified field; Replace '?' with a valid property for the specified field (e.g., value)."),
-  ];
+  /** @var \Drupal\token\TokenEntityMapper $token_entity_mapper */
+  $token_entity_mapper = \Drupal::service('token.entity_mapper');
+
+  $types = [];
+  $tokens = [];
 
   // Build token types for each field type.
   foreach ($field_types as $field_type_name => $field_type_info) {
     // Build tokens for each formatter of the current field type.
     foreach ($formatters as $formatter_name => $formatter_info) {
       if (in_array($field_type_name, $formatter_info['field_types'])) {
-        $tokens["formatted_field-{$field_type_name}"]["{$formatter_name}"] = [
+        $tokens["formatted_field-{$field_type_name}"][$formatter_name] = [
           'name'        => $formatter_info['label'],
           'description' => t('@label formatter.', ['@label' => $formatter_info['label']]),
           'dynamic'     => TRUE,
@@ -66,6 +67,40 @@ function field_tokens_token_info() {
         'name'        => t('Formatted @label field', ['@label' => $field_type_info['label']]),
         'description' => t('Tokens related to Formatted @label fields.', ['@label' => $field_type_info['label']]),
         'needs-data'  => "formatted_field-{$field_type_name}",
+      ];
+    }
+
+    // Build tokens for each property of the current field type.
+    /** @var \Drupal\field\Entity\FieldConfig $field */
+    foreach ($fields as $field) {
+      if ($field->getType() == $field_type_name) {
+        $properties = $field->getFieldStorageDefinition()
+          ->getPropertyDefinitions();
+
+        /** @var \Drupal\Core\TypedData\DataDefinition $data_definition */
+        foreach ($properties as $property_name => $data_definition) {
+          $tokens["field_property-{$field_type_name}"][$property_name] = [
+            'name'        => $data_definition->getLabel(),
+            'description' => t('@label property.', ['@label' => $data_definition->getLabel()]),
+          ];
+
+          if ($data_definition instanceof DataReferenceDefinition) {
+            $tokens["field_property-{$field_type_name}"][$property_name]['dynamic'] = TRUE;
+            if ($data_definition->getConstraint('EntityType')) {
+              $token_type = $token_entity_mapper->getTokenTypeForEntityType($data_definition->getConstraint('EntityType'));
+              $tokens["field_property-{$field_type_name}"][$property_name]['dynamic'] = FALSE;
+              $tokens["field_property-{$field_type_name}"][$property_name]['type'] = $token_type;
+            }
+          }
+        }
+      }
+    }
+
+    if (!empty($tokens["field_property-{$field_type_name}"])) {
+      $types["field_property-{$field_type_name}"] = [
+        'name'        => t('@label field properties', ['@label' => $field_type_info['label']]),
+        'description' => t('Properties of the @label fields.', ['@label' => $field_type_info['label']]),
+        'needs-data'  => "field_property-{$field_type_name}",
       ];
     }
   }
@@ -109,7 +144,7 @@ function field_tokens_token_info_alter(&$data) {
               $data['tokens'][$token_type]["{$field_name}-property"] = [
                 'name'        => t('@label: Field properties', ['@label' => $field->label()]),
                 'description' => t("Field properties from one or more @label field values. Replace '?' with a comma seperated list of deltas (e.g., '0,1').", ['@label' => $field->label()]),
-                'type'        => 'field_property',
+                'type'        => "field_property-{$field->getType()}",
                 'dynamic'     => TRUE,
               ];
             }
@@ -279,7 +314,8 @@ function field_tokens_tokens($type, $tokens, array $data, array $options, \Drupa
       $property = array_shift($args);
       /** @var Drupal\Core\Field\FieldItemBase $item */
       foreach ($data['field_property'] as $item) {
-        $properties = $item->propertyDefinitions($field->getFieldStorageDefinition());
+        $properties = $field->getFieldStorageDefinition()
+          ->getPropertyDefinitions();
         if (isset($properties[$property]) && $properties[$property] instanceof DataReferenceDefinition && !empty($args)) {
           $reference = $item->get($property)->getValue();
           if ($reference instanceof EntityInterface) {
@@ -290,11 +326,14 @@ function field_tokens_tokens($type, $tokens, array $data, array $options, \Drupa
             $chained_data = [
               $token_type => $reference,
             ];
-            $replacements += $token_service->generate($token_type, [implode(':', $args) => $original], $chained_data, $options, $bubbleable_metadata);
+            $output[] = $token_service->generate($token_type, [implode(':', $args) => $original], $chained_data, $options, $bubbleable_metadata)[$original];
           }
         }
         else {
-          $output[] = $item->get($property)->getValue();
+          $value = $item->get($property)->getValue();
+          if (is_string($value)) {
+            $output[] = $value;
+          }
         }
       }
 
