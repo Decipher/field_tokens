@@ -12,7 +12,7 @@ use Drupal\image\Tests\ImageFieldTestBase;
 /**
  * Class FieldTokensTest.
  */
-class FieldTokensTestBase extends ImageFieldTestBase {
+abstract class FieldTokensTestBase extends ImageFieldTestBase {
 
   /**
    * A content type.
