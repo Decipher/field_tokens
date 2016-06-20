@@ -264,7 +264,7 @@ function field_tokens_tokens($type, $tokens, array $data, array $options, \Drupa
       if (!empty($args[0])) {
         $formatter_name = array_shift($args);
         foreach ($args as $formatter_setting) {
-          list($name, $value) = explode('-', $formatter_setting);
+          list($name, $value) = explode('-', $formatter_setting, 2);
           $formatter_settings[$name] = $value;
         }
       }
