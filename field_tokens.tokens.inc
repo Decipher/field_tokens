@@ -6,6 +6,7 @@
  */
 
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Render\Element;
 use Drupal\Core\Render\Markup;
 use Drupal\Core\TypedData\DataReferenceDefinition;
@@ -162,7 +163,7 @@ function field_tokens_token_info_alter(&$data) {
 /**
  * Implements hook_tokens().
  */
-function field_tokens_tokens($type, $tokens, array $data, array $options, \Drupal\Core\Render\BubbleableMetadata $bubbleable_metadata) {
+function field_tokens_tokens($type, $tokens, array $data, array $options, BubbleableMetadata $bubbleable_metadata) {
   /** @var \Drupal\token\Token $token_service */
   $token_service = \Drupal::token();
   /** @var \Drupal\Core\Field\FormatterPluginManager $formatter_manager */

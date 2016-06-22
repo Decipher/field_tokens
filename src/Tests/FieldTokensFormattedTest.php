@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\field_tokens\Tests\FieldTokensFormattedTest.
- */
-
 namespace Drupal\field_tokens\Tests;
 
 use Drupal\node\Entity\Node;

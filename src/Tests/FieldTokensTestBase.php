@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\field_tokens\Tests\FieldTokensTestBase.
- */
-
 namespace Drupal\field_tokens\Tests;
 
 use Drupal\image\Tests\ImageFieldTestBase;

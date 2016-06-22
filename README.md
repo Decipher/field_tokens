@@ -1,6 +1,7 @@
 # Field tokens
 
-[![Build Status](https://travis-ci.org/Decipher/field_tokens.svg)](https://travis-ci.org/Decipher/field_tokens)
+[![Build Status](https://travis-ci.org/Decipher/field_tokens.svg)](
+https://travis-ci.org/Decipher/field_tokens)
 
 The Field tokens module add two additional types of field tokens; Formatted
 fields and field properties.
