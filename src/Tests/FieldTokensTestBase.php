@@ -2,7 +2,7 @@
 
 namespace Drupal\field_tokens\Tests;
 
-use Drupal\image\Tests\ImageFieldTestBase;
+use Drupal\Tests\image\Functional\ImageFieldTestBase;
 
 /**
  * Class FieldTokensTest.
