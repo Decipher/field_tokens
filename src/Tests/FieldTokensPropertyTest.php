@@ -25,7 +25,7 @@ class FieldTokensPropertyTest extends FieldTokensTestBase {
     $value = \Drupal::service('token')->replace($token, ['node' => $node]);
 
     // Check the token is rendered correctly.
-    $this->assertEqual($value, $node->{$this->field->get('field_name')}[0]->target_id, $token . ' matches provided Image field target_id property.');
+    $this->assertEquals($value, $node->{$this->field->get('field_name')}[0]->target_id, $token . ' matches provided Image field target_id property.');
   }
 
 }

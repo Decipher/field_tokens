@@ -28,12 +28,12 @@ abstract class FieldTokensTestBase extends ImageFieldTestBase {
    *
    * @var array
    */
-  public static $modules = array('field_tokens', 'image');
+  protected static $modules = array('field_tokens', 'image');
 
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
 
     // Create a content type.

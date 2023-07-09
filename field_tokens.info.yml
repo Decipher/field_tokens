@@ -1,6 +1,6 @@
 name: Field Tokens
 description: Adds formatted field and field property tokens.
 type: module
-core_version_requirement: ^8 || ^9
+core_version_requirement: ^9.1 || ^10
 dependencies:
   - token:token

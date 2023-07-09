@@ -36,7 +36,7 @@ class FieldTokensFormattedTest extends FieldTokensTestBase {
     $value = \Drupal::service('token')->replace($token, ['node' => $node]);
 
     // Check the token is rendered correctly.
-    $this->assertEqual($value, $output, $token . ' matches rendered Image formatter for provided Image field.');
+    $this->assertEquals($value, $output, $token . ' matches rendered Image formatter for provided Image field.');
   }
 
 }
