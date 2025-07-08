@@ -248,7 +248,7 @@ function field_tokens_tokens($type, $tokens, array $data, array $options, Bubble
     /** @var \Drupal\Core\Entity\Entity\EntityViewDisplay $display */
     $view_mode = \Drupal::entityTypeManager()
       ->getStorage('entity_view_display')
-      ->load($entity->getEntityTypeId() . '.' . $entity->getType() . '.default');
+      ->load($entity->getEntityTypeId() . '.' . $entity->bundle() . '.default');
     $display = $view_mode->getComponent($field->get('field_name'));
     $display['field_definition'] = $field;
     $display['view_mode'] = 'default';
