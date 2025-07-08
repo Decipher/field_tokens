@@ -32,7 +32,7 @@ class FieldTokensGeneralTest extends FieldTokensTestBase {
     $edit = [];
     $edit["fields[{$field_name}][type]"] = 'hidden';
     $this->drupalGet("admin/structure/types/manage/{$this->contentType->id()}/display");
-    $this->submitForm($edit, t('Save'));
+    $this->submitForm($edit, $this->t('Save'));
 
     // Create node with two images attached.
     $test_image = current($this->getTestFiles('image'));
@@ -41,13 +41,13 @@ class FieldTokensGeneralTest extends FieldTokensTestBase {
     $edit["files[{$this->field->get('field_name')}_0]"] = $file_system->realpath($test_image->uri);
     $edit["files[{$field_name}_0]"] = $file_system->realpath($test_image->uri);
     $this->drupalGet('node/add/' . $this->contentType->id());
-    $this->submitForm($edit, t('Save and publish'));
+    $this->submitForm($edit, $this->t('Save and publish'));
 
     // Add Alt text.
     $edit = [];
     $edit["{$this->field->get('field_name')}[0][alt]"] = $this->randomString();
     $edit["{$field_name}[0][alt]"] = $this->randomString();
-    $this->submitForm($edit, t('Save and publish'));
+    $this->submitForm($edit, $this->t('Save and publish'));
 
     // Retrieve ID of the newly created node from the current URL.
     $matches = [];

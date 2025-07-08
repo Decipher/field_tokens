@@ -170,11 +170,9 @@ function field_tokens_tokens($type, $tokens, array $data, array $options, Bubble
   $formatter_manager = \Drupal::service('plugin.manager.field.formatter');
 
   $url_options = ['absolute' => TRUE];
-  $langcode = NULL;
   if (isset($options['langcode'])) {
     $url_options['language'] = \Drupal::languageManager()
       ->getLanguage($options['langcode']);
-    $langcode = $options['langcode'];
   }
   $replacements = [];
 
