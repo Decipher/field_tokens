@@ -188,7 +188,7 @@ function field_tokens_tokens($type, $tokens, array $data, array $options, Bubble
   ];
 
   // Entity tokens.
-  if ($type == 'entity' && !empty($data['entity'])) {
+  if ($type == 'entity' && !empty($data['entity']) && $data['entity'] instanceof \Drupal\Core\Entity\FieldableEntityInterface) {
     /** @var \Drupal\Core\Entity\ContentEntityBase $entity */
     $entity = $data['entity'];
     $fields = $entity->getFieldDefinitions();
