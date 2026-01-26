@@ -293,7 +293,7 @@ function field_tokens_tokens($type, $tokens, array $data, array $options, Bubble
         if ($element) {
           foreach (Element::children($element) as $delta) {
             $output .= \Drupal::service('renderer')
-              ->renderPlain($element[$delta]);
+              ->renderInIsolation($element[$delta]);
           }
         }
         if (!empty($output)) {
