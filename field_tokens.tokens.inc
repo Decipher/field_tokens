@@ -271,7 +271,7 @@ function field_tokens_tokens($type, $tokens, array $data, array $options, Bubble
       }
 
       if (!is_null($formatter_name) && isset($formatters[$formatter_name]) && in_array($field_type['id'], $formatters[$formatter_name]['field_types'])) {
-        $default_settings = $formatter_manager->getDefaultSettings($formatter_name);;
+        $default_settings = $formatter_manager->getDefaultSettings($formatter_name);
         if (!empty($default_settings)) {
           $formatter_settings += $default_settings;
         }
