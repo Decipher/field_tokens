@@ -12,6 +12,11 @@ use Drupal\node\Entity\Node;
 class FieldTokensFormattedTest extends FieldTokensTestBase {
 
   /**
+   * {@inheritdoc}
+   */
+  protected $defaultTheme = 'start';
+
+  /**
    * Test that Formatted tokens render correctly.
    */
   public function testFormattedTokens() {

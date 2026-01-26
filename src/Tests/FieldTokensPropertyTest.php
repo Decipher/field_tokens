@@ -12,6 +12,11 @@ use Drupal\node\Entity\Node;
 class FieldTokensPropertyTest extends FieldTokensTestBase {
 
   /**
+   * {@inheritdoc}
+   */
+  protected $defaultTheme = 'stark';
+
+  /**
    * Test that Field property tokens render correctly.
    */
   public function testPropertyTokens() {

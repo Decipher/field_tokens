@@ -12,6 +12,11 @@ use Drupal\node\Entity\Node;
 class FieldTokensGeneralTest extends FieldTokensTestBase {
 
   /**
+   * {@inheritdoc}
+   */
+  protected $defaultTheme = 'stark';
+
+  /**
    * Test hidden fields with a Field tokens rendered field.
    *
    * @see http://drupal.org/node/2543548
