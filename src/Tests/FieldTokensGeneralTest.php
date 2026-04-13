@@ -26,7 +26,7 @@ class FieldTokensGeneralTest extends FieldTokensTestBase {
 
     // Create a second image field.
     $field_name = strtolower($this->randomMachineName());
-    $this->createImageField($field_name, $this->contentType->id());
+    $this->createImageField($field_name, 'node', $this->contentType->id());
 
     // Set second image field to hidden.
     $edit = [];
@@ -35,7 +35,7 @@ class FieldTokensGeneralTest extends FieldTokensTestBase {
     $this->submitForm($edit, t('Save'));
 
     // Create node with two images attached.
-    $test_image = current($this->drupalGetTestFiles('image'));
+    $test_image = current($this->getTestFiles('image'));
     $edit = [];
     $edit['title[0][value]'] = $this->randomMachineName();
     $edit["files[{$this->field->get('field_name')}_0]"] = $file_system->realpath($test_image->uri);

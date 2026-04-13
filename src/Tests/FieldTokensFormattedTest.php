@@ -14,14 +14,14 @@ class FieldTokensFormattedTest extends FieldTokensTestBase {
   /**
    * {@inheritdoc}
    */
-  protected $defaultTheme = 'start';
+  protected $defaultTheme = 'stark';
 
   /**
    * Test that Formatted tokens render correctly.
    */
   public function testFormattedTokens() {
     // Create a new node with an image attached.
-    $test_image = current($this->drupalGetTestFiles('image'));
+    $test_image = current($this->getTestFiles('image'));
     $nid = $this->uploadNodeImage($test_image, $this->field->get('field_name'), $this->contentType->id(), $this->randomString());
 
     $node = Node::load($nid);

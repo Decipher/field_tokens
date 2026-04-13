@@ -136,7 +136,7 @@ function field_tokens_token_info_alter(&$data) {
               // Formatted field tokens.
               $data['tokens'][$token_type]["{$field_name}-formatted"] = [
                 'name'        => t('@label: Formatted field', ['@label' => $field->label()]),
-                'description' => t("The formatted value of one or more @label field values. Replace '?' with a comma seperated list of deltas (e.g., '0,1').", ['@label' => $field->label()]),
+                'description' => t("The formatted value of one or more @label field values. Replace '?' with a comma separated list of deltas (e.g., '0,1').", ['@label' => $field->label()]),
                 'type'        => "formatted_field-{$field->getType()}",
                 'dynamic'     => TRUE,
               ];
@@ -144,7 +144,7 @@ function field_tokens_token_info_alter(&$data) {
               // Field property tokens.
               $data['tokens'][$token_type]["{$field_name}-property"] = [
                 'name'        => t('@label: Field properties', ['@label' => $field->label()]),
-                'description' => t("Field properties from one or more @label field values. Replace '?' with a comma seperated list of deltas (e.g., '0,1').", ['@label' => $field->label()]),
+                'description' => t("Field properties from one or more @label field values. Replace '?' with a comma separated list of deltas (e.g., '0,1').", ['@label' => $field->label()]),
                 'type'        => "field_property-{$field->getType()}",
                 'dynamic'     => TRUE,
               ];
@@ -152,7 +152,7 @@ function field_tokens_token_info_alter(&$data) {
           }
         }
         catch (Exception $e) {
-          // @TODO - Find a better way to prevent errors when loading field
+          // @todo Find a better way to prevent errors when loading field
           // definitions.
         }
       }
@@ -265,7 +265,7 @@ function field_tokens_tokens($type, $tokens, array $data, array $options, Bubble
       if (!empty($args[0])) {
         $formatter_name = array_shift($args);
         foreach ($args as $formatter_setting) {
-          list($name, $value) = explode('-', $formatter_setting, 2);
+          [$name, $value] = explode('-', $formatter_setting, 2);
           $formatter_settings[$name] = $value;
         }
       }
@@ -278,7 +278,7 @@ function field_tokens_tokens($type, $tokens, array $data, array $options, Bubble
 
         // Inject formatter and formatter settings into $display.
         $display['type'] = $formatter_name;
-        $display['settings'] = isset($formatter_settings) ? $formatter_settings : $default_settings;
+        $display['settings'] = $formatter_settings ?? $default_settings;
 
         // Clone entity.
         $cloned_entity = clone $entity;
@@ -305,7 +305,7 @@ function field_tokens_tokens($type, $tokens, array $data, array $options, Bubble
 
   // Field property tokens.
   elseif ($type == 'field_property') {
-    /** @var FieldConfig $field */
+    /** @var \Drupal\field\Entity\FieldConfig $field */
     $field = $data['field'];
 
     foreach ($tokens as $args => $original) {

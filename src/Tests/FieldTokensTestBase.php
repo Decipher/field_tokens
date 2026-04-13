@@ -3,11 +3,13 @@
 namespace Drupal\field_tokens\Tests;
 
 use Drupal\Tests\image\Functional\ImageFieldTestBase;
+use Drupal\Tests\TestFileCreationTrait;
 
 /**
  * Class FieldTokensTest.
  */
 abstract class FieldTokensTestBase extends ImageFieldTestBase {
+  use TestFileCreationTrait;
 
   /**
    * A content type.
@@ -28,7 +30,7 @@ abstract class FieldTokensTestBase extends ImageFieldTestBase {
    *
    * @var array
    */
-  protected static $modules = array('field_tokens', 'image');
+  protected static $modules = ['field_tokens', 'image'];
 
   /**
    * {@inheritdoc}
@@ -41,7 +43,7 @@ abstract class FieldTokensTestBase extends ImageFieldTestBase {
 
     // Create an Image field.
     $field_name = strtolower($this->randomMachineName());
-    $this->field = $this->createImageField($field_name, $this->contentType->id());
+    $this->field = $this->createImageField($field_name, 'node', $this->contentType->id());
   }
 
 }
