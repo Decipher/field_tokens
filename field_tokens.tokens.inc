@@ -270,8 +270,11 @@ function field_tokens_tokens(string $type, array $tokens, array $data, array $op
       if (!empty($args[0])) {
         $formatter_name = array_shift($args);
         foreach ($args as $formatter_setting) {
-          [$name, $value] = explode('-', $formatter_setting, 2);
-          $formatter_settings[$name] = $value;
+          $parts = explode('-', $formatter_setting, 2);
+          if (count($parts) === 2) {
+            [$name, $value] = $parts;
+            $formatter_settings[$name] = $value;
+          }
         }
       }
 
