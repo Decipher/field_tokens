@@ -2,14 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Drupal\field_tokens\Tests;
+namespace Drupal\Tests\field_tokens\Functional;
 
+use Drupal\file\Entity\File;
+use Drupal\node\NodeInterface;
 use Drupal\Tests\image\Functional\ImageFieldTestBase;
 use Drupal\Tests\TestFileCreationTrait;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 
 /**
- * Class FieldTokensTest.
+ * Base class for Field Tokens functional tests.
  */
 abstract class FieldTokensTestBase extends ImageFieldTestBase {
   use TestFileCreationTrait;
@@ -48,6 +50,31 @@ abstract class FieldTokensTestBase extends ImageFieldTestBase {
     // Create an Image field.
     $field_name = strtolower($this->randomMachineName());
     $this->field = $this->createImageField($field_name, 'node', (string) $this->contentType->id());
+  }
+
+  /**
+   * Creates a node with an image field value.
+   */
+  protected function createNodeWithImage(): NodeInterface {
+    $images = $this->getTestFiles('image');
+    $image = reset($images);
+    $this->assertNotFalse($image);
+
+    $file = File::create([
+      'uri' => $image->uri ?? '',
+      'uid' => 1,
+      'status' => 1,
+    ]);
+    $file->save();
+
+    $node = $this->drupalCreateNode([
+      'type' => $this->contentType->id(),
+      $this->field->get('field_name') => [
+        'target_id' => $file->id(),
+        'alt' => $this->randomString(),
+      ],
+    ]);
+    return $node;
   }
 
 }

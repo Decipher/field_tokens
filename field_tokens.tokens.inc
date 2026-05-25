@@ -229,7 +229,9 @@ function field_tokens_tokens(string $type, array $tokens, array $data, array $op
                   $chained_data = array_merge($data, [
                     $token_data_type => $token_items,
                     'field'          => $field,
+                    'field_name'     => ($data['entity_type'] ?? '') . '-' . $field_name,
                   ]);
+                  $chained_data[$chained_data['field_name']] = $token_items;
                   $replacements += $token_service->generate($token_data_type, [implode(':', $parts) => $original], $chained_data, $options, $bubbleable_metadata);
                 }
               }
@@ -333,7 +335,7 @@ function field_tokens_tokens(string $type, array $tokens, array $data, array $op
             $output[] = $token_service->generate($token_type, [implode(':', $args) => $original], $chained_data, $options, $bubbleable_metadata)[$original];
           }
         }
-        else {
+        elseif (isset($properties[$property])) {
           $value = $item->get($property)->getValue();
           if (is_string($value)) {
             $output[] = $value;

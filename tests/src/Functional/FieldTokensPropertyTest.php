@@ -2,14 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Drupal\field_tokens\Tests;
-
-use Drupal\node\Entity\Node;
+namespace Drupal\Tests\field_tokens\Functional;
 
 /**
  * Tests the Field property tokens.
  *
- * @group Field tokens
+ * @group field_tokens
  */
 class FieldTokensPropertyTest extends FieldTokensTestBase {
 
@@ -22,12 +20,10 @@ class FieldTokensPropertyTest extends FieldTokensTestBase {
    * Test that Field property tokens render correctly.
    */
   public function testPropertyTokens() {
-    // Create a new node with an image attached.
-    $test_image = current($this->getTestFiles('image'));
-    $nid = $this->uploadNodeImage($test_image, $this->field->get('field_name'), $this->contentType->id(), $this->randomString());
-    $node = Node::load($nid);
+    // Create a node with an image attached.
+    $node = $this->createNodeWithImage();
 
-    // Image field URI property token.
+    // Image field target_id property token.
     $token = "[node:{$this->field->get('field_name')}-property:0:target_id]";
     $value = \Drupal::service('token')->replace($token, ['node' => $node]);
 
