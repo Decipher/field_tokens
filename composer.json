@@ -1,0 +1,26 @@
+{
+    "name": "drupal/field_tokens",
+    "description": "Adds formatted field and field property tokens.",
+    "type": "drupal-module",
+    "license": "GPL-2.0-or-later",
+    "authors": [
+        {
+            "name": "Stuart Clark",
+            "homepage": "https://www.drupal.org/u/deciphered",
+            "role": "Maintainer"
+        }
+    ],
+    "homepage": "https://www.drupal.org/project/field_tokens",
+    "keywords": ["Drupal", "field", "token"],
+    "minimum-stability": "dev",
+    "support": {
+        "issues": "https://drupal.org/project/issues/field_tokens",
+        "source": "https://git.drupalcode.org/project/field_tokens"
+    },
+    "require": {
+        "php": ">=8.1"
+    },
+    "require-dev": {
+        "drupal/token": "^1"
+    }
+}
