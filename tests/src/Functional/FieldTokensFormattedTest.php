@@ -1,30 +1,29 @@
 <?php
 
-namespace Drupal\field_tokens\Tests;
+declare(strict_types=1);
 
-use Drupal\node\Entity\Node;
+namespace Drupal\Tests\field_tokens\Functional;
 
 /**
  * Tests the Formatted field tokens.
  *
- * @group Field tokens
+ * @group field_tokens
  */
 class FieldTokensFormattedTest extends FieldTokensTestBase {
 
   /**
    * {@inheritdoc}
    */
-  protected $defaultTheme = 'start';
+  protected $defaultTheme = 'stark';
 
   /**
    * Test that Formatted tokens render correctly.
    */
   public function testFormattedTokens() {
-    // Create a new node with an image attached.
-    $test_image = current($this->drupalGetTestFiles('image'));
-    $nid = $this->uploadNodeImage($test_image, $this->field->get('field_name'), $this->contentType->id(), $this->randomString());
+    // Create a node with an image attached.
+    $node = $this->createNodeWithImage();
 
-    $node = Node::load($nid);
+    // Render the field directly for comparison.
     $display = [
       'type'     => 'image',
       'settings' => [
@@ -41,7 +40,7 @@ class FieldTokensFormattedTest extends FieldTokensTestBase {
     $value = \Drupal::service('token')->replace($token, ['node' => $node]);
 
     // Check the token is rendered correctly.
-    $this->assertEquals($value, $output, $token . ' matches rendered Image formatter for provided Image field.');
+    $this->assertEquals((string) $value, (string) $output, $token . ' matches rendered Image formatter for provided Image field.');
   }
 
 }

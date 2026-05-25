@@ -4,3 +4,5 @@
  * @file
  * Core functions for the Field tokens module.
  */
+
+declare(strict_types=1);

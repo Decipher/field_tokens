@@ -32,4 +32,20 @@ parameters:
         - web/themes/custom/*
       reportUnmatched: false
 
+    -
+      # Test file type issues with getTestFiles/uploadNodeImage.
+      messages:
+        - '#expects stdClass, object#'
+        - '#Because the type is coming from a PHPDoc#'
+      paths:
+        - web/modules/custom/field_tokens/tests/*
+      reportUnmatched: false
+
+    -
+      # Access to undefined property on test file objects.
+      message: '#Access to an undefined property object::#'
+      paths:
+        - web/modules/custom/field_tokens/tests/*
+      reportUnmatched: false
+
   reportUnmatchedIgnoredErrors: false
