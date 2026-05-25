@@ -5,6 +5,9 @@
  * Token functions for Field tokens module.
  */
 
+declare(strict_types=1);
+
+use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Render\Element;
@@ -87,8 +90,10 @@ function field_tokens_token_info() {
 
           if ($data_definition instanceof DataReferenceDefinition) {
             $tokens["field_property-{$field_type_name}"][$property_name]['dynamic'] = TRUE;
-            if ($data_definition->getConstraint('EntityType')) {
-              $token_type = $token_entity_mapper->getTokenTypeForEntityType($data_definition->getConstraint('EntityType'));
+            /** @var string|array|null $entity_type_constraint */
+            $entity_type_constraint = $data_definition->getConstraint('EntityType');
+            if (is_string($entity_type_constraint)) {
+              $token_type = $token_entity_mapper->getTokenTypeForEntityType($entity_type_constraint);
               $tokens["field_property-{$field_type_name}"][$property_name]['dynamic'] = FALSE;
               $tokens["field_property-{$field_type_name}"][$property_name]['type'] = $token_type;
             }
@@ -115,7 +120,7 @@ function field_tokens_token_info() {
 /**
  * Implements hook_token_info_alter().
  */
-function field_tokens_token_info_alter(&$data) {
+function field_tokens_token_info_alter(array &$data): void {
   /** @var \Drupal\Core\Entity\EntityTypeBundleInfo $bundle_info */
   $bundle_info = \Drupal::service('entity_type.bundle.info');
 
@@ -163,7 +168,7 @@ function field_tokens_token_info_alter(&$data) {
 /**
  * Implements hook_tokens().
  */
-function field_tokens_tokens($type, $tokens, array $data, array $options, BubbleableMetadata $bubbleable_metadata) {
+function field_tokens_tokens(string $type, array $tokens, array $data, array $options, BubbleableMetadata $bubbleable_metadata): array {
   /** @var \Drupal\token\Token $token_service */
   $token_service = \Drupal::token();
   /** @var \Drupal\Core\Field\FormatterPluginManager $formatter_manager */
@@ -188,7 +193,7 @@ function field_tokens_tokens($type, $tokens, array $data, array $options, Bubble
   ];
 
   // Entity tokens.
-  if ($type == 'entity' && !empty($data['entity']) && $data['entity'] instanceof \Drupal\Core\Entity\FieldableEntityInterface) {
+  if ($type == 'entity' && !empty($data['entity']) && $data['entity'] instanceof FieldableEntityInterface) {
     /** @var \Drupal\Core\Entity\ContentEntityBase $entity */
     $entity = $data['entity'];
     $fields = $entity->getFieldDefinitions();
@@ -200,7 +205,7 @@ function field_tokens_tokens($type, $tokens, array $data, array $options, Bubble
           if ($field_tokens) {
             $token_data_type = $token_type_info['field_type'] ? "{$token_type_info['token_type']}-{$field->getType()}" : $token_type_info['token_type'];
             foreach ($field_tokens as $name => $original) {
-              /** @var \Drupal\Core\Field\FieldItemList $items */
+              /** @var \Drupal\Core\Field\FieldItemList<\Drupal\Core\Field\FieldItemInterface> $items */
               $items = $entity->{$field_name};
               if (!$items->isEmpty()) {
                 $parts = explode(':', $name);
@@ -210,7 +215,7 @@ function field_tokens_tokens($type, $tokens, array $data, array $options, Bubble
                 if (empty($diff)) {
                   $token_items = [];
                   foreach ($deltas as $delta) {
-                    $token_items[] = $items[$delta];
+                    $token_items[] = $items[(int) $delta];
                   }
 
                   /** @var \Drupal\Core\Field\FieldItemBase $item */
@@ -245,7 +250,7 @@ function field_tokens_tokens($type, $tokens, array $data, array $options, Bubble
     $field_type = \Drupal::service('plugin.manager.field.field_type')
       ->getDefinition($field->getType());
 
-    /** @var \Drupal\Core\Entity\Entity\EntityViewDisplay $display */
+    /** @var \Drupal\Core\Entity\Entity\EntityViewDisplay $view_mode */
     $view_mode = \Drupal::entityTypeManager()
       ->getStorage('entity_view_display')
       ->load($entity->getEntityTypeId() . '.' . $entity->bundle() . '.default');
@@ -276,7 +281,7 @@ function field_tokens_tokens($type, $tokens, array $data, array $options, Bubble
 
         // Inject formatter and formatter settings into $display.
         $display['type'] = $formatter_name;
-        $display['settings'] = $formatter_settings ?? $default_settings;
+        $display['settings'] = $formatter_settings;
 
         // Clone entity.
         $cloned_entity = clone $entity;

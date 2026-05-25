@@ -1,15 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\field_tokens\Tests;
 
 use Drupal\Tests\image\Functional\ImageFieldTestBase;
 use Drupal\Tests\TestFileCreationTrait;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 
 /**
  * Class FieldTokensTest.
  */
 abstract class FieldTokensTestBase extends ImageFieldTestBase {
   use TestFileCreationTrait;
+  use StringTranslationTrait;
 
   /**
    * A content type.
@@ -28,7 +32,7 @@ abstract class FieldTokensTestBase extends ImageFieldTestBase {
   /**
    * Modules to enable.
    *
-   * @var array
+   * @var array<string>
    */
   protected static $modules = ['field_tokens', 'image'];
 
@@ -43,7 +47,7 @@ abstract class FieldTokensTestBase extends ImageFieldTestBase {
 
     // Create an Image field.
     $field_name = strtolower($this->randomMachineName());
-    $this->field = $this->createImageField($field_name, 'node', $this->contentType->id());
+    $this->field = $this->createImageField($field_name, 'node', (string) $this->contentType->id());
   }
 
 }

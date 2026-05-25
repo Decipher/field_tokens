@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\field_tokens\Tests;
 
 use Drupal\node\Entity\Node;
