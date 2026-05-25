@@ -332,7 +332,10 @@ function field_tokens_tokens(string $type, array $tokens, array $data, array $op
             $chained_data = [
               $token_type => $reference,
             ];
-            $output[] = $token_service->generate($token_type, [implode(':', $args) => $original], $chained_data, $options, $bubbleable_metadata)[$original];
+            $result = $token_service->generate($token_type, [implode(':', $args) => $original], $chained_data, $options, $bubbleable_metadata);
+            if (isset($result[$original])) {
+              $output[] = $result[$original];
+            }
           }
         }
         elseif (isset($properties[$property])) {
