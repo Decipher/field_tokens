@@ -42,7 +42,7 @@ function field_tokens_token_info() {
   foreach ($field_types as $field_type_name => $field_type_info) {
     // Build tokens for each formatter of the current field type.
     foreach ($formatters as $formatter_name => $formatter_info) {
-      if (in_array($field_type_name, $formatter_info['field_types'])) {
+      if (!empty($formatter_info['field_types']) && in_array($field_type_name, $formatter_info['field_types'])) {
         $tokens["formatted_field-{$field_type_name}"][$formatter_name] = [
           'name'        => $formatter_info['label'],
           'description' => t('@label formatter.', ['@label' => $formatter_info['label']]),
@@ -279,7 +279,7 @@ function field_tokens_tokens(string $type, array $tokens, array $data, array $op
         }
       }
 
-      if (!is_null($formatter_name) && isset($formatters[$formatter_name]) && in_array($field_type['id'], $formatters[$formatter_name]['field_types'])) {
+      if (!is_null($formatter_name) && isset($formatters[$formatter_name]) && !empty($formatters[$formatter_name]['field_types']) && in_array($field_type['id'], $formatters[$formatter_name]['field_types'])) {
         $default_settings = $formatter_manager->getDefaultSettings($formatter_name);
         if (!empty($default_settings)) {
           $formatter_settings += $default_settings;
