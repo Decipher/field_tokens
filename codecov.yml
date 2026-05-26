@@ -1,0 +1,9 @@
+codecov:
+  branch: 2.0.x
+
+coverage:
+  status:
+    patch: off
+
+fix:
+  - "web/modules/custom/field_tokens/::"
