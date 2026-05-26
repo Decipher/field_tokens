@@ -68,8 +68,8 @@ Field Tokens is a relatively simple module that:
 - `field_tokens.tokens.inc` - All token implementations (lines 1-348)
 
 **Token patterns provided:**
-- `[node:field_{name}-formatted:{delta}:{formatter}:{settings}]` - Formatted field output
-- `[node:field_{name}-property:{delta}:{property}]` - Raw field properties
+- `[node:field_{name}-formatted:{delta}:{formatter}:{settings}]` - Formatted field output (delta is optional; omit or use `*` for all values)
+- `[node:field_{name}-property:{delta}:{property}]` - Raw field properties (delta is optional; omit or use `*` for all values)
 
 ## Environment Variables
 

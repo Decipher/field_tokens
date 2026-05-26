@@ -126,4 +126,38 @@ class FormattedTokenReplaceTest extends FieldTokensKernelTestBase {
     $this->assertEquals(trim($direct_output), trim((string) $result));
   }
 
+  /**
+   * Tests formatted token without delta renders all values.
+   */
+  public function testFormattedTokenNoDelta(): void {
+    $node = $this->createNodeWithText([
+      ['value' => 'First', 'format' => 'plain_text'],
+      ['value' => 'Second', 'format' => 'plain_text'],
+    ]);
+
+    $token = '[node:' . static::FIELD_NAME . '-formatted:text_default]';
+    $result = \Drupal::token()->replace($token, ['node' => $node]);
+
+    $this->assertStringContainsString('First', (string) $result);
+    $this->assertStringContainsString('Second', (string) $result);
+  }
+
+  /**
+   * Tests formatted token with range syntax renders correct values.
+   */
+  public function testFormattedTokenRange(): void {
+    $node = $this->createNodeWithText([
+      ['value' => 'One', 'format' => 'plain_text'],
+      ['value' => 'Two', 'format' => 'plain_text'],
+      ['value' => 'Three', 'format' => 'plain_text'],
+    ]);
+
+    $token = '[node:' . static::FIELD_NAME . '-formatted:0-1:text_default]';
+    $result = \Drupal::token()->replace($token, ['node' => $node]);
+
+    $this->assertStringContainsString('One', (string) $result);
+    $this->assertStringContainsString('Two', (string) $result);
+    $this->assertStringNotContainsString('Three', (string) $result);
+  }
+
 }

@@ -124,4 +124,19 @@ class PropertyTokenReplaceTest extends FieldTokensKernelTestBase {
     }
   }
 
+  /**
+   * Tests property token without delta returns all values.
+   */
+  public function testPropertyTokenNoDelta(): void {
+    $node = $this->createNodeWithText([
+      ['value' => 'First', 'format' => 'plain_text'],
+      ['value' => 'Second', 'format' => 'plain_text'],
+    ]);
+
+    $token = '[node:' . static::FIELD_NAME . '-property:value]';
+    $result = \Drupal::token()->replace($token, ['node' => $node]);
+
+    $this->assertEquals('First, Second', $result);
+  }
+
 }
