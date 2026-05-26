@@ -336,7 +336,7 @@ function chmod_recursive(string $path, int $mode): void {
 // Never run the real quit() function during tests. This also avoids bleeding
 // into global namespace when running multiple tests that share the same
 // test process.
-// Note that this replicates the behaviour of global built-in functions
+// Note that this replicates the behavior of global built-in functions
 // like passthru() and exec() which are *not defined in this namespace*. We only
 // defined quit() in a namespace because mocking of global functions can only
 // be done if they are defined in a namespace.

@@ -64,7 +64,7 @@ return RectorConfig::configure()
     // Directories to skip.
     '*/vendor/*',
     '*/node_modules/*',
-    // Core and contribs.
+    // Core and contrib.
     '*/core/*',
     '*/modules/contrib/*',
     '*/themes/contrib/*',
