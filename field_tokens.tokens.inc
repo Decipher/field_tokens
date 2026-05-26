@@ -227,11 +227,12 @@ function field_tokens_tokens(string $type, array $tokens, array $data, array $op
 
                   // Pass through to chained field tokens.
                   $chained_data = array_merge($data, [
-                    $token_data_type => $token_items,
+                    ($token_type === 'property' ? '_field_tokens_items' : $token_data_type) => $token_items,
                     'field'          => $field,
                     'field_name'     => ($data['entity_type'] ?? '') . '-' . $field_name,
                   ]);
                   $chained_data[$chained_data['field_name']] = $token_items;
+
                   $replacements += $token_service->generate($token_data_type, [implode(':', $parts) => $original], $chained_data, $options, $bubbleable_metadata);
                 }
               }
@@ -322,7 +323,7 @@ function field_tokens_tokens(string $type, array $tokens, array $data, array $op
       $args = explode(':', $args);
       $property = array_shift($args);
       /** @var Drupal\Core\Field\FieldItemBase $item */
-      foreach ($data['field_property'] as $item) {
+      foreach (($data['_field_tokens_items'] ?? []) as $item) {
         $properties = $field->getFieldStorageDefinition()
           ->getPropertyDefinitions();
         if (isset($properties[$property]) && $properties[$property] instanceof DataReferenceDefinition && !empty($args)) {
