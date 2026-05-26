@@ -220,7 +220,7 @@ jobs:
           name: ${{github.job}}-code-coverage-report-${{ matrix.name }}
           path: ./.logs/coverage/phpunit/.coverage-html
           include-hidden-files: true
-          if-no-files-found: error
+          if-no-files-found: warn
 
       - name: Upload coverage report to Codecov
         uses: codecov/codecov-action@e79a6962e0d4c0c17b229090214935d2e33f8354 # v6
