@@ -23,7 +23,7 @@ function field_tokens_custom_formatters_token_data_alter(array &$token_data, arr
   $entity = $item->getEntity();
 
   $token_data["formatted_field-{$field_type}"] = [$item];
-  $token_data['field_property'] = [$item];
+  $token_data['_field_tokens_items'] = [$item];
   $token_data['entity'] = $entity;
   $token_data['entity_type'] = $entity->getEntityTypeId();
   $token_data['field'] = $field_definition;

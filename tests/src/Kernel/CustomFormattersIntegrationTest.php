@@ -40,9 +40,9 @@ class CustomFormattersIntegrationTest extends FieldTokensKernelTestBase {
     $context = ['text' => '', 'item' => $item, 'delta' => 0];
     \Drupal::moduleHandler()->alter('custom_formatters_token_data', $token_data, $context);
 
-    $this->assertArrayHasKey('field_property', $token_data);
-    $this->assertIsArray($token_data['field_property']);
-    $this->assertCount(1, $token_data['field_property']);
+    $this->assertArrayHasKey('_field_tokens_items', $token_data);
+    $this->assertIsArray($token_data['_field_tokens_items']);
+    $this->assertCount(1, $token_data['_field_tokens_items']);
   }
 
   /**
@@ -104,7 +104,7 @@ class CustomFormattersIntegrationTest extends FieldTokensKernelTestBase {
     \Drupal::moduleHandler()->alter('custom_formatters_token_data', $token_data, $context);
 
     $this->assertArrayNotHasKey('formatted_field-image', $token_data);
-    $this->assertArrayNotHasKey('field_property', $token_data);
+    $this->assertArrayNotHasKey('_field_tokens_items', $token_data);
     $this->assertArrayNotHasKey('entity', $token_data);
     $this->assertArrayNotHasKey('field', $token_data);
   }
@@ -121,8 +121,53 @@ class CustomFormattersIntegrationTest extends FieldTokensKernelTestBase {
     \Drupal::moduleHandler()->alter('custom_formatters_token_data', $token_data, $context);
 
     $this->assertArrayHasKey('formatted_field-text', $token_data);
-    $this->assertArrayHasKey('field_property', $token_data);
+    $this->assertArrayHasKey('_field_tokens_items', $token_data);
     $this->assertEquals('text', $token_data['field']->getType());
+  }
+
+  /**
+   * Tests formatted field token resolution via entity-scoped path.
+   *
+   * Regression test: the alter hook's field_property key must not cause the
+   * Token module's field_property handler to interfere with formatted_field
+   * token resolution.
+   */
+  public function testFormattedFieldTokenViaEntityWithAlterContext(): void {
+    $node = $this->createNodeWithImage();
+    $item = $node->get(static::IMAGE_FIELD_NAME)[0];
+
+    $token_data = ['node' => $node, 'file' => $node->get(static::IMAGE_FIELD_NAME)->entity];
+    $context = ['text' => '', 'item' => $item, 'delta' => 0];
+    \Drupal::moduleHandler()->alter('custom_formatters_token_data', $token_data, $context);
+
+    $result = \Drupal::token()->replace(
+      '[node:' . static::IMAGE_FIELD_NAME . '-formatted:0:image:image_style-thumbnail]',
+      $token_data,
+      ['clear' => TRUE],
+    );
+
+    $this->assertStringContainsString('<img', $result);
+    $this->assertStringContainsString('/styles/thumbnail/', $result);
+  }
+
+  /**
+   * Tests property token resolution via entity-scoped path with alter context.
+   */
+  public function testPropertyTokenViaEntityWithAlterContext(): void {
+    $node = $this->createNodeWithImage();
+    $item = $node->get(static::IMAGE_FIELD_NAME)[0];
+
+    $token_data = ['node' => $node, 'file' => $node->get(static::IMAGE_FIELD_NAME)->entity];
+    $context = ['text' => '', 'item' => $item, 'delta' => 0];
+    \Drupal::moduleHandler()->alter('custom_formatters_token_data', $token_data, $context);
+
+    $result = \Drupal::token()->replace(
+      '[node:' . static::IMAGE_FIELD_NAME . '-property:0:alt]',
+      $token_data,
+      ['clear' => TRUE],
+    );
+
+    $this->assertEquals('Test image', $result);
   }
 
   /**
