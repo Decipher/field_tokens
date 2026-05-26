@@ -59,7 +59,7 @@ directly in HTML + Token formatters without entity-level chaining.
 ## Testing
 
 This project includes a Makefile and
-[Ahoy](https://ahoy-cli.readthedocs.io/) based development environment.
+[Ahoy](https://ahoy-cli.readthedocs.io/)-based development environment.
 
 ```bash
 make build       # Build the development environment
