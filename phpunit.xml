@@ -113,19 +113,14 @@
     </coverage>
     <source>
         <include>
-            <directory suffix=".php">web/modules/custom</directory>
-            <directory suffix=".module">web/modules/custom</directory>
-            <directory suffix=".inc">web/modules/custom</directory>
-            <directory suffix=".install">web/modules/custom</directory>
-            <directory suffix=".php">web/themes/custom</directory>
-            <directory suffix=".inc">web/themes/custom</directory>
+            <directory suffix=".php">web/modules/custom/field_tokens</directory>
+            <directory suffix=".module">web/modules/custom/field_tokens</directory>
+            <directory suffix=".inc">web/modules/custom/field_tokens</directory>
+            <directory suffix=".install">web/modules/custom/field_tokens</directory>
         </include>
 
         <exclude>
-            <directory suffix=".php">web/modules/custom/*/tests</directory>
-            <directory suffix=".inc">web/modules/custom/*/tests</directory>
-            <directory suffix=".php">web/themes/custom/*/tests</directory>
-            <directory suffix=".inc">web/themes/custom/*/tests</directory>
+            <directory suffix=".php">web/modules/custom/field_tokens/tests</directory>
             <file>web/modules/custom/field_tokens/rector.php</file>
             <directory>**/node_modules/**</directory>
         </exclude>
