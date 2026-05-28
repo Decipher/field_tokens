@@ -358,3 +358,4 @@ if (!function_exists('DrupalExtensionScaffold\DevTools\quit') && !class_exists('
 
 }
 // @codeCoverageIgnoreEnd
+// phpcs:ignore DrupalPractice.Commenting.CommentEmptyLine
