@@ -18,7 +18,7 @@ use Drupal\field\Entity\FieldConfig;
 /**
  * Implements hook_token_info().
  */
-function field_tokens_token_info() {
+function field_tokens_token_info(): array {
   /** @var \Drupal\Core\Field\FieldTypePluginManager $field_type_manager */
   $field_type_manager = \Drupal::service('plugin.manager.field.field_type');
   $field_types = $field_type_manager->getDefinitions();
@@ -43,7 +43,7 @@ function field_tokens_token_info() {
     // Build tokens for each formatter of the current field type.
     foreach ($formatters as $formatter_name => $formatter_info) {
       if (!empty($formatter_info['field_types']) && in_array($field_type_name, $formatter_info['field_types'])) {
-        $tokens["formatted_field-{$field_type_name}"][$formatter_name] = [
+        $tokens['formatted_field-' . $field_type_name][$formatter_name] = [
           'name'        => $formatter_info['label'],
           'description' => t('@label formatter.', ['@label' => $formatter_info['label']]),
           'dynamic'     => TRUE,
@@ -52,7 +52,7 @@ function field_tokens_token_info() {
         // Adjust token name and description if formatter has no settings.
         $default_settings = $formatter_manager->getDefaultSettings($formatter_name);
         if (empty($default_settings)) {
-          unset($tokens["formatted_field-{$field_type_name}"]["{$formatter_name}"]['dynamic']);
+          unset($tokens['formatted_field-' . $field_type_name][$formatter_name]['dynamic']);
         }
 
         // Append settings list to description.
@@ -61,16 +61,16 @@ function field_tokens_token_info() {
           foreach ($default_settings as $key => $default) {
             $settings[] = $key;
           }
-          $tokens["formatted_field-{$field_type_name}"]["{$formatter_name}"]['description'] .= ' ' . t("Replace '?' with formatter settings in the following format: 'SETTING-VALUE:SETTING-VALUE-...'. Available settings: @settings", ['@settings' => implode(', ', $settings)]);
+          $tokens['formatted_field-' . $field_type_name][$formatter_name]['description'] .= ' ' . t("Replace '?' with formatter settings in the following format: 'SETTING-VALUE:SETTING-VALUE-...'. Available settings: @settings", ['@settings' => implode(', ', $settings)]);
         }
       }
     }
 
-    if (!empty($tokens["formatted_field-{$field_type_name}"])) {
-      $types["formatted_field-{$field_type_name}"] = [
+    if (!empty($tokens['formatted_field-' . $field_type_name])) {
+      $types['formatted_field-' . $field_type_name] = [
         'name'        => t('Formatted @label field', ['@label' => $field_type_info['label']]),
         'description' => t('Tokens related to Formatted @label fields.', ['@label' => $field_type_info['label']]),
-        'needs-data'  => "formatted_field-{$field_type_name}",
+        'needs-data'  => 'formatted_field-' . $field_type_name,
       ];
     }
 
@@ -83,30 +83,30 @@ function field_tokens_token_info() {
 
         /** @var \Drupal\Core\TypedData\DataDefinition $data_definition */
         foreach ($properties as $property_name => $data_definition) {
-          $tokens["field_property-{$field_type_name}"][$property_name] = [
+          $tokens['field_property-' . $field_type_name][$property_name] = [
             'name'        => $data_definition->getLabel(),
             'description' => t('@label property.', ['@label' => $data_definition->getLabel()]),
           ];
 
           if ($data_definition instanceof DataReferenceDefinition) {
-            $tokens["field_property-{$field_type_name}"][$property_name]['dynamic'] = TRUE;
+            $tokens['field_property-' . $field_type_name][$property_name]['dynamic'] = TRUE;
             /** @var string|array|null $entity_type_constraint */
             $entity_type_constraint = $data_definition->getConstraint('EntityType');
             if (is_string($entity_type_constraint)) {
               $token_type = $token_entity_mapper->getTokenTypeForEntityType($entity_type_constraint);
-              $tokens["field_property-{$field_type_name}"][$property_name]['dynamic'] = FALSE;
-              $tokens["field_property-{$field_type_name}"][$property_name]['type'] = $token_type;
+              $tokens['field_property-' . $field_type_name][$property_name]['dynamic'] = FALSE;
+              $tokens['field_property-' . $field_type_name][$property_name]['type'] = $token_type;
             }
           }
         }
       }
     }
 
-    if (!empty($tokens["field_property-{$field_type_name}"])) {
-      $types["field_property-{$field_type_name}"] = [
+    if (!empty($tokens['field_property-' . $field_type_name])) {
+      $types['field_property-' . $field_type_name] = [
         'name'        => t('@label field properties', ['@label' => $field_type_info['label']]),
         'description' => t('Properties of the @label fields.', ['@label' => $field_type_info['label']]),
-        'needs-data'  => "field_property-{$field_type_name}",
+        'needs-data'  => 'field_property-' . $field_type_name,
       ];
     }
   }
@@ -139,24 +139,24 @@ function field_tokens_token_info_alter(array &$data): void {
           foreach ($fields as $field_name => $field) {
             if ($field instanceof FieldConfig && isset($data['tokens'][$token_type][$field_name])) {
               // Formatted field tokens.
-              $data['tokens'][$token_type]["{$field_name}-formatted"] = [
+              $data['tokens'][$token_type][$field_name . '-formatted'] = [
                 'name'        => t('@label: Formatted field', ['@label' => $field->label()]),
                 'description' => t("The formatted value of one or more @label field values. Replace '?' with a comma separated list of deltas (e.g., '0,1').", ['@label' => $field->label()]),
-                'type'        => "formatted_field-{$field->getType()}",
+                'type'        => 'formatted_field-' . $field->getType(),
                 'dynamic'     => TRUE,
               ];
 
               // Field property tokens.
-              $data['tokens'][$token_type]["{$field_name}-property"] = [
+              $data['tokens'][$token_type][$field_name . '-property'] = [
                 'name'        => t('@label: Field properties', ['@label' => $field->label()]),
                 'description' => t("Field properties from one or more @label field values. Replace '?' with a comma separated list of deltas (e.g., '0,1').", ['@label' => $field->label()]),
-                'type'        => "field_property-{$field->getType()}",
+                'type'        => 'field_property-' . $field->getType(),
                 'dynamic'     => TRUE,
               ];
             }
           }
         }
-        catch (Exception $e) {
+        catch (Exception) {
           // @todo Find a better way to prevent errors when loading field
           // definitions.
         }
@@ -193,34 +193,34 @@ function field_tokens_tokens(string $type, array $tokens, array $data, array $op
   ];
 
   // Entity tokens.
-  if ($type == 'entity' && !empty($data['entity']) && $data['entity'] instanceof FieldableEntityInterface) {
+  if ($type === 'entity' && !empty($data['entity']) && $data['entity'] instanceof FieldableEntityInterface) {
     /** @var \Drupal\Core\Entity\ContentEntityBase $entity */
     $entity = $data['entity'];
     $fields = $entity->getFieldDefinitions();
-    /** @var \Drupal\field\Entity\FieldConfig $field */
+
+    /** @var \Drupal\Core\Field\FieldDefinitionInterface $field */
     foreach ($fields as $field_name => $field) {
       if ($field instanceof FieldConfig) {
         foreach ($token_types as $token_type => $token_type_info) {
-          $field_tokens = $token_service->findWithPrefix($tokens, "{$field_name}-{$token_type}");
+          $field_tokens = $token_service->findWithPrefix($tokens, sprintf('%s-%s', $field_name, $token_type));
           if ($field_tokens) {
-            $token_data_type = $token_type_info['field_type'] ? "{$token_type_info['token_type']}-{$field->getType()}" : $token_type_info['token_type'];
+            $token_data_type = $token_type_info['field_type'] ? sprintf('%s-%s', $token_type_info['token_type'], $field->getType()) : $token_type_info['token_type'];
             foreach ($field_tokens as $name => $original) {
               /** @var \Drupal\Core\Field\FieldItemList<\Drupal\Core\Field\FieldItemInterface> $items */
               $items = $entity->{$field_name};
               if (!$items->isEmpty()) {
-                $parts = explode(':', $name);
+                $parts = explode(':', (string) $name);
                 $deltas = explode(',', array_shift($parts));
 
-                $diff = array_diff(array_values($deltas), array_keys($items->getValue()));
+                $diff = array_diff($deltas, array_keys($items->getValue()));
                 if (empty($diff)) {
                   $token_items = [];
                   foreach ($deltas as $delta) {
                     $token_items[] = $items[(int) $delta];
                   }
 
-                  /** @var \Drupal\Core\Field\FieldItemBase $item */
-                  foreach ($token_items as $item) {
-                    if ($item->isEmpty()) {
+                  foreach ($token_items as $token_item) {
+                    if ($token_item->isEmpty()) {
                       continue(2);
                     }
                   }
@@ -231,7 +231,7 @@ function field_tokens_tokens(string $type, array $tokens, array $data, array $op
                     'field'          => $field,
                     'field_name'     => ($data['entity_type'] ?? '') . '-' . $field_name,
                   ]);
-                  $chained_data[$chained_data['field_name']] = $token_items;
+                  $chained_data[($data['entity_type'] ?? '') . '-' . $field_name] = $token_items;
 
                   $replacements += $token_service->generate($token_data_type, [implode(':', $parts) => $original], $chained_data, $options, $bubbleable_metadata);
                 }
@@ -244,7 +244,7 @@ function field_tokens_tokens(string $type, array $tokens, array $data, array $op
   }
 
   // Formatted field tokens.
-  elseif (strpos($type, 'formatted_field') === 0 && isset($data[$type]) && isset($data['entity_type']) && isset($data['entity'])) {
+  elseif (str_starts_with($type, 'formatted_field') && isset($data[$type]) && isset($data['entity_type']) && isset($data['entity'])) {
     /** @var \Drupal\Core\Entity\ContentEntityBase $entity */
     $entity = $data['entity'];
 
@@ -265,13 +265,13 @@ function field_tokens_tokens(string $type, array $tokens, array $data, array $op
     $formatters = $formatter_manager->getDefinitions();
 
     foreach ($tokens as $args => $original) {
-      $args = explode(':', $args);
+      $args = explode(':', (string) $args);
       $formatter_name = $field_type['default_formatter'];
       $formatter_settings = [];
       if (!empty($args[0])) {
         $formatter_name = array_shift($args);
-        foreach ($args as $formatter_setting) {
-          $parts = explode('-', $formatter_setting, 2);
+        foreach ($args as $arg) {
+          $parts = explode('-', $arg, 2);
           if (count($parts) === 2) {
             [$name, $value] = $parts;
             $formatter_settings[$name] = $value;
@@ -313,14 +313,14 @@ function field_tokens_tokens(string $type, array $tokens, array $data, array $op
   }
 
   // Field property tokens.
-  elseif ($type == 'field_property') {
+  elseif ($type === 'field_property') {
     /** @var \Drupal\field\Entity\FieldConfig $field */
     $field = $data['field'];
 
     foreach ($tokens as $args => $original) {
       $output = [];
 
-      $args = explode(':', $args);
+      $args = explode(':', (string) $args);
       $property = array_shift($args);
       /** @var Drupal\Core\Field\FieldItemBase $item */
       foreach (($data['_field_tokens_items'] ?? []) as $item) {

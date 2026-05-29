@@ -107,7 +107,6 @@
             <file>web/modules/custom/field_tokens/rector.php</file>
             <directory>**/node_modules/**</directory>
         </exclude>
-
         <report>
             <html outputDirectory="../.logs/coverage/phpunit/.coverage-html" lowUpperBound="50" highLowerBound="90"/>
             <cobertura outputFile="../.logs/coverage/phpunit/cobertura.xml"/>

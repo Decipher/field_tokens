@@ -17,8 +17,8 @@ class NullFormatterFieldTypesTest extends FieldTokensKernelTestBase {
    * Tests that token info handles formatter with null field_types.
    */
   public function testTokenInfoHandlesNullFieldTypes(): void {
+    /** @var \Drupal\Core\Field\FormatterPluginManager $formatter_manager */
     $formatter_manager = $this->container->get('plugin.manager.field.formatter');
-    assert($formatter_manager instanceof FormatterPluginManager);
 
     $definitions = $formatter_manager->getDefinitions();
     $definitions['test_null_field_types'] = [
@@ -49,8 +49,8 @@ class NullFormatterFieldTypesTest extends FieldTokensKernelTestBase {
    * Tests that token info handles formatter with absent field_types.
    */
   public function testTokenInfoHandlesAbsentFieldTypes(): void {
+    /** @var \Drupal\Core\Field\FormatterPluginManager $formatter_manager */
     $formatter_manager = $this->container->get('plugin.manager.field.formatter');
-    assert($formatter_manager instanceof FormatterPluginManager);
 
     $definitions = $formatter_manager->getDefinitions();
     $definitions['test_absent_field_types'] = [

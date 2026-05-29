@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\field_tokens\Kernel;
 
+use Drupal\Core\Entity\EntityFieldManagerInterface;
+
 /**
  * Tests hook_token_info_alter() output.
  *
@@ -91,6 +93,35 @@ class TokenInfoAlterTest extends FieldTokensKernelTestBase {
     $token = $this->tokenInfo['tokens']['node'][$key];
     $description = (string) $token['description'];
     $this->assertStringContainsString('delta', strtolower($description));
+  }
+
+  /**
+   * Tests that an exception in getFieldDefinitions is caught gracefully.
+   */
+  public function testGetFieldDefinitionsExceptionIsCaught(): void {
+    $mock_entity_field_manager = $this->createMock(EntityFieldManagerInterface::class);
+    $mock_entity_field_manager->method('getFieldDefinitions')
+      ->willThrowException(new \Exception('Simulated field definition failure'));
+
+    $this->container->set('entity_field.manager', $mock_entity_field_manager);
+
+    $data = [
+      'types' => [],
+      'tokens' => [
+        'node' => [
+          static::FIELD_NAME => [
+            'name' => 'Test Text',
+            'description' => 'Test field.',
+          ],
+        ],
+      ],
+    ];
+    \Drupal::moduleHandler()->invoke('field_tokens', 'token_info_alter', [&$data]);
+
+    $this->assertArrayNotHasKey(
+      static::FIELD_NAME . '-formatted',
+      $data['tokens']['node'],
+    );
   }
 
 }

@@ -112,15 +112,15 @@ class PropertyTokenReplaceTest extends FieldTokensKernelTestBase {
   public function testPropertyTokenChainedEntityReference(): void {
     $node = $this->createNodeWithImage();
 
-    $token = '[node:' . static::IMAGE_FIELD_NAME . '-property:0:entity:uuid]';
+    $token = '[node:' . static::IMAGE_FIELD_NAME . '-property:0:entity:fid]';
     $result = \Drupal::token()->replace($token, ['node' => $node]);
 
     if ($result !== $token) {
       $file = $node->get(static::IMAGE_FIELD_NAME)->entity;
-      $this->assertEquals($file->uuid(), $result);
+      $this->assertEquals((string) $file->id(), $result);
     }
     else {
-      $this->assertNotEmpty($result);
+      $this->fail("Token was not replaced: $token");
     }
   }
 

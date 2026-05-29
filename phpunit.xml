@@ -100,17 +100,6 @@
         <junit outputFile="../.logs/test_results/phpunit/phpunit.xml"/>
     </logging>
 
-    <!-- Settings for coverage reports. -->
-    <coverage includeUncoveredFiles="true"
-              pathCoverage="false"
-              ignoreDeprecatedCodeUnits="true"
-              disableCodeCoverageIgnore="false">
-        <report>
-            <html outputDirectory="../.logs/coverage/phpunit/.coverage-html" lowUpperBound="50" highLowerBound="90"/>
-            <cobertura outputFile="../.logs/coverage/phpunit/cobertura.xml"/>
-            <text outputFile="php://stdout" showUncoveredFiles="true"/>
-        </report>
-    </coverage>
     <source>
         <include>
             <directory suffix=".php">web/modules/custom/field_tokens</directory>
@@ -125,4 +114,16 @@
             <directory>**/node_modules/**</directory>
         </exclude>
     </source>
+
+    <!-- Settings for coverage reports. -->
+    <coverage includeUncoveredFiles="true"
+              pathCoverage="false"
+              ignoreDeprecatedCodeUnits="true"
+              disableCodeCoverageIgnore="false">
+        <report>
+            <html outputDirectory="../.logs/coverage/phpunit/.coverage-html" lowUpperBound="50" highLowerBound="90"/>
+            <cobertura outputFile="../.logs/coverage/phpunit/cobertura.xml"/>
+            <text outputFile="php://stdout" showUncoveredFiles="true"/>
+        </report>
+    </coverage>
 </phpunit>

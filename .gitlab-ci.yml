@@ -34,4 +34,4 @@ variables:
   OPT_IN_TEST_NEXT_MINOR: '1'
   OPT_IN_TEST_NEXT_MAJOR: "0"
   OPT_IN_TEST_MAX_PHP: "1"
-  _PHPUNIT_EXTRA: '--no-coverage'
+  _PHPUNIT_EXTRA: '--no-coverage --configuration=phpunit.gitlab-ci.xml'
