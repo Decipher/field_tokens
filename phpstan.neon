@@ -28,9 +28,6 @@ parameters:
       messages:
         - '#.* no value type specified in iterable type array#'
         - '#.* has no return type specified#'
-      paths:
-        - web/modules/custom/*
-        - web/themes/custom/*
       reportUnmatched: false
 
     -
@@ -38,15 +35,11 @@ parameters:
       messages:
         - '#expects stdClass, object#'
         - '#Because the type is coming from a PHPDoc#'
-      paths:
-        - web/modules/custom/field_tokens/tests/*
       reportUnmatched: false
 
     -
       # Access to undefined property on test file objects.
       message: '#Access to an undefined property object::#'
-      paths:
-        - web/modules/custom/field_tokens/tests/*
       reportUnmatched: false
 
   reportUnmatchedIgnoredErrors: false
