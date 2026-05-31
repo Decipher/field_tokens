@@ -248,4 +248,67 @@ class EntityTokenReplaceTest extends FieldTokensKernelTestBase {
     $this->assertStringContainsString('E', (string) $result);
   }
 
+  /**
+   * Tests that malformed delta specs (e.g., '0,,2') do NOT replace.
+   */
+  public function testMalformedDeltaDoubleCommaNoReplacement(): void {
+    $node = $this->createNodeWithText([
+      ['value' => 'Test', 'format' => 'plain_text'],
+      ['value' => 'Test 2', 'format' => 'plain_text'],
+    ]);
+
+    $token = '[node:' . static::FIELD_NAME . '-formatted:0,,2:text_default]';
+    $result = \Drupal::token()->replace($token, ['node' => $node]);
+
+    $this->assertEquals($token, $result);
+  }
+
+  /**
+   * Tests that malformed delta trailing hyphen (e.g., '0-') does NOT replace.
+   */
+  public function testMalformedDeltaTrailingHyphenNoReplacement(): void {
+    $node = $this->createNodeWithText([['value' => 'Test', 'format' => 'plain_text']]);
+
+    $token = '[node:' . static::FIELD_NAME . '-formatted:0-:text_default]';
+    $result = \Drupal::token()->replace($token, ['node' => $node]);
+
+    $this->assertEquals($token, $result);
+  }
+
+  /**
+   * Tests that malformed triple-hyphen (e.g., '1-2-3') does NOT replace.
+   */
+  public function testMalformedDeltaTripleHyphenNoReplacement(): void {
+    $node = $this->createNodeWithText([
+      ['value' => 'A', 'format' => 'plain_text'],
+      ['value' => 'B', 'format' => 'plain_text'],
+      ['value' => 'C', 'format' => 'plain_text'],
+    ]);
+
+    $token = '[node:' . static::FIELD_NAME . '-formatted:1-2-3:text_default]';
+    $result = \Drupal::token()->replace($token, ['node' => $node]);
+
+    $this->assertEquals($token, $result);
+  }
+
+  /**
+   * Tests that an inverse range (e.g., '2-0') returns items in reverse.
+   */
+  public function testInverseDeltaRangeReturnsReversed(): void {
+    $node = $this->createNodeWithText([
+      ['value' => 'Alpha', 'format' => 'plain_text'],
+      ['value' => 'Beta', 'format' => 'plain_text'],
+      ['value' => 'Gamma', 'format' => 'plain_text'],
+    ]);
+
+    $result = \Drupal::token()->replace(
+      '[node:' . static::FIELD_NAME . '-formatted:2-0:text_default]',
+      ['node' => $node]
+    );
+
+    $this->assertStringContainsString('Alpha', (string) $result);
+    $this->assertStringContainsString('Beta', (string) $result);
+    $this->assertStringContainsString('Gamma', (string) $result);
+  }
+
 }

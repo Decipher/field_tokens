@@ -219,12 +219,13 @@ function field_tokens_tokens(string $type, array $tokens, array $data, array $op
                   $deltas = $field_keys;
                 }
                 // Check if first segment is a delta specification
-                // (digits, commas, and hyphens only).
-                elseif (preg_match('/^[0-9,\-]+$/', $parts[0])) {
+                // (e.g., '0', '0-2', '0,2,4', '0-2,4,6-8').
+                elseif (preg_match('/^\d+(?:-\d+)?(?:,\d+(?:-\d+)?)*$/', $parts[0])) {
                   foreach (explode(',', $parts[0]) as $segment) {
-                    if (str_contains($segment, '-')) {
-                      [$start, $end] = explode('-', $segment, 2);
-                      array_push($deltas, ...range((int) $start, (int) $end));
+                    if (preg_match('/^(\d+)-(\d+)$/', $segment, $matches)) {
+                      $start = (int) $matches[1];
+                      $end = (int) $matches[2];
+                      array_push($deltas, ...range($start, $end));
                     }
                     else {
                       $deltas[] = (int) $segment;
