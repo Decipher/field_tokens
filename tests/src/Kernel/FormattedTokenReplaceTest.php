@@ -160,4 +160,57 @@ class FormattedTokenReplaceTest extends FieldTokensKernelTestBase {
     $this->assertStringNotContainsString('Three', (string) $result);
   }
 
+  /**
+   * Tests formatted image token without delta renders all values.
+   */
+  public function testFormattedImageNoDelta(): void {
+    $node = $this->createNodeWithMultipleImages(3);
+
+    $token = '[node:' . static::IMAGE_FIELD_NAME . '-formatted:image]';
+    $result = \Drupal::token()->replace($token, ['node' => $node]);
+
+    $this->assertNotEmpty($result);
+    $this->assertStringContainsString('<img', (string) $result);
+  }
+
+  /**
+   * Tests formatted image token with range syntax.
+   */
+  public function testFormattedImageRange(): void {
+    $node = $this->createNodeWithMultipleImages(3);
+
+    $token = '[node:' . static::IMAGE_FIELD_NAME . '-formatted:0-1:image]';
+    $result = \Drupal::token()->replace($token, ['node' => $node]);
+
+    $this->assertNotEmpty($result);
+    $this->assertStringContainsString('<img', (string) $result);
+  }
+
+  /**
+   * Tests formatted image token with wildcard.
+   */
+  public function testFormattedImageWildcard(): void {
+    $node = $this->createNodeWithMultipleImages(3);
+
+    $token = '[node:' . static::IMAGE_FIELD_NAME . '-formatted:*:image]';
+    $result = \Drupal::token()->replace($token, ['node' => $node]);
+
+    $this->assertNotEmpty($result);
+    $this->assertStringContainsString('<img', (string) $result);
+  }
+
+  /**
+   * Tests formatted image token with mixed range and list syntax.
+   */
+  public function testFormattedImageMixedRange(): void {
+    $node = $this->createNodeWithMultipleImages(5);
+
+    // Select deltas 0, 2, 3, 4 (using range 2-4 + single 0).
+    $token = '[node:' . static::IMAGE_FIELD_NAME . '-formatted:0,2-4:image]';
+    $result = \Drupal::token()->replace($token, ['node' => $node]);
+
+    $this->assertNotEmpty($result);
+    $this->assertStringContainsString('<img', (string) $result);
+  }
+
 }
