@@ -1,10 +1,58 @@
 # Field tokens
 
+[![Pipeline](https://git.drupalcode.org/project/field_tokens/badges/2.0.x/pipeline.svg)](https://git.drupalcode.org/project/field_tokens/-/pipelines)
 [![Test](https://github.com/Decipher/field_tokens/actions/workflows/test.yml/badge.svg?branch=2.0.x)](https://github.com/Decipher/field_tokens/actions/workflows/test.yml?query=branch%3A2.0.x)
 [![Coverage](https://codecov.io/gh/Decipher/field_tokens/branch/2.0.x/graph/badge.svg)](https://codecov.io/gh/Decipher/field_tokens/branch/2.0.x)
 
-The Field tokens module adds two additional types of field tokens:
-Formatted fields and field properties.
+The Field tokens module adds two additional types of field tokens: Formatted
+fields and field properties.
+
+For a full description of the module, visit the
+[project page](https://www.drupal.org/project/field_tokens).
+
+Submit bug reports and feature suggestions, or track changes in the
+[issue queue](https://www.drupal.org/project/issues/field_tokens).
+
+## Table of contents
+
+- Requirements
+- Installation
+- Configuration
+- Formatted field tokens
+- Field property tokens
+- Custom Formatters integration
+- Maintainers
+
+## Requirements
+
+- Drupal 10 or 11
+- PHP 8.2+
+- [Token](https://www.drupal.org/project/token)
+
+The following modules are recommended:
+
+- [Custom Formatters](https://www.drupal.org/project/custom_formatters) —
+  Provides the HTML + Token formatter engine.
+
+## Installation
+
+1. Download and install via Composer:
+
+   ```bash
+   composer require drupal/field_tokens
+   ```
+
+1. Enable the module:
+
+   ```bash
+   drush en field_tokens
+   ```
+
+## Configuration
+
+The module works automatically once enabled. Use the Token module's browser
+to explore available tokens or use them directly in content. No configuration
+form is needed.
 
 ## Formatted field tokens
 
@@ -83,25 +131,7 @@ When both modules are enabled, tokens like
 `[formatted_field-image:image:...]` and `[field_property:alt]` can be used
 directly in HTML + Token formatters without entity-level chaining.
 
-## Requirements
+## Maintainers
 
-- Drupal 10 or 11
-- PHP 8.2+
-- [Token](https://www.drupal.org/project/token)
-
-## Recommended modules
-
-- [Custom Formatters](https://www.drupal.org/project/custom_formatters) --
-  Provides the HTML + Token formatter engine.
-
-## Testing
-
-This project includes a Makefile and
-[Ahoy](https://ahoy-cli.readthedocs.io/)-based development environment.
-
-```bash
-make build       # Build the development environment
-make provision   # Install Drupal
-make test        # Run all PHPUnit tests
-make lint        # Run PHPCS, PHPStan, Rector, and Twig CS Fixer
-```
+- Stuart Clark - [deciphered](https://www.drupal.org/u/deciphered)
+- Dave Nattriss - [natts](https://www.drupal.org/u/natts)
