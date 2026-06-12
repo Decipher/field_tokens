@@ -92,6 +92,9 @@ function field_tokens_token_info(): array {
             $tokens['field_property-' . $field_type_name][$property_name]['dynamic'] = TRUE;
             /** @var string|array|null $entity_type_constraint */
             $entity_type_constraint = $data_definition->getConstraint('EntityType');
+            if (is_array($entity_type_constraint) && isset($entity_type_constraint['type'])) {
+              $entity_type_constraint = $entity_type_constraint['type'];
+            }
             if (is_string($entity_type_constraint)) {
               $token_type = $token_entity_mapper->getTokenTypeForEntityType($entity_type_constraint);
               $tokens['field_property-' . $field_type_name][$property_name]['dynamic'] = FALSE;
