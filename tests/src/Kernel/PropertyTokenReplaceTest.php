@@ -124,4 +124,61 @@ class PropertyTokenReplaceTest extends FieldTokensKernelTestBase {
     }
   }
 
+  /**
+   * Tests property token without delta returns all values.
+   */
+  public function testPropertyTokenNoDelta(): void {
+    $node = $this->createNodeWithText([
+      ['value' => 'First', 'format' => 'plain_text'],
+      ['value' => 'Second', 'format' => 'plain_text'],
+    ]);
+
+    $token = '[node:' . static::FIELD_NAME . '-property:value]';
+    $result = \Drupal::token()->replace($token, ['node' => $node]);
+
+    $this->assertEquals('First, Second', $result);
+  }
+
+  /**
+   * Tests image property token without delta returns all target IDs.
+   */
+  public function testPropertyImageNoDelta(): void {
+    $node = $this->createNodeWithMultipleImages(3);
+
+    $token = '[node:' . static::IMAGE_FIELD_NAME . '-property:target_id]';
+    $result = \Drupal::token()->replace($token, ['node' => $node]);
+
+    $this->assertNotEmpty($result);
+    $target_ids = explode(', ', (string) $result);
+    $this->assertCount(3, $target_ids);
+  }
+
+  /**
+   * Tests image property token with range syntax.
+   */
+  public function testPropertyImageRange(): void {
+    $node = $this->createNodeWithMultipleImages(3);
+
+    $token = '[node:' . static::IMAGE_FIELD_NAME . '-property:0-1:target_id]';
+    $result = \Drupal::token()->replace($token, ['node' => $node]);
+
+    $this->assertNotEmpty($result);
+    $target_ids = explode(', ', (string) $result);
+    $this->assertCount(2, $target_ids);
+  }
+
+  /**
+   * Tests image property token with wildcard.
+   */
+  public function testPropertyImageWildcard(): void {
+    $node = $this->createNodeWithMultipleImages(3);
+
+    $token = '[node:' . static::IMAGE_FIELD_NAME . '-property:*:target_id]';
+    $result = \Drupal::token()->replace($token, ['node' => $node]);
+
+    $this->assertNotEmpty($result);
+    $target_ids = explode(', ', (string) $result);
+    $this->assertCount(3, $target_ids);
+  }
+
 }

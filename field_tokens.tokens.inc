@@ -141,7 +141,7 @@ function field_tokens_token_info_alter(array &$data): void {
               // Formatted field tokens.
               $data['tokens'][$token_type][$field_name . '-formatted'] = [
                 'name'        => t('@label: Formatted field', ['@label' => $field->label()]),
-                'description' => t("The formatted value of one or more @label field values. Replace '?' with a comma separated list of deltas (e.g., '0,1').", ['@label' => $field->label()]),
+                'description' => t("The formatted value of one or more @label field values. Replace '?' with a comma separated list of deltas (e.g., '0,1'), ranges (e.g., '0-3'), or a combination (e.g., '0-2,4,6-8'). Use '*' or omit '?' for all values.", ['@label' => $field->label()]),
                 'type'        => 'formatted_field-' . $field->getType(),
                 'dynamic'     => TRUE,
               ];
@@ -149,7 +149,7 @@ function field_tokens_token_info_alter(array &$data): void {
               // Field property tokens.
               $data['tokens'][$token_type][$field_name . '-property'] = [
                 'name'        => t('@label: Field properties', ['@label' => $field->label()]),
-                'description' => t("Field properties from one or more @label field values. Replace '?' with a comma separated list of deltas (e.g., '0,1').", ['@label' => $field->label()]),
+                'description' => t("Field properties from one or more @label field values. Replace '?' with a comma separated list of deltas (e.g., '0,1'), ranges (e.g., '0-3'), or a combination (e.g., '0-2,4,6-8'). Use '*' or omit '?' for all values.", ['@label' => $field->label()]),
                 'type'        => 'field_property-' . $field->getType(),
                 'dynamic'     => TRUE,
               ];
@@ -210,31 +210,66 @@ function field_tokens_tokens(string $type, array $tokens, array $data, array $op
               $items = $entity->{$field_name};
               if (!$items->isEmpty()) {
                 $parts = explode(':', (string) $name);
-                $deltas = explode(',', array_shift($parts));
+                $field_keys = array_keys($items->getValue());
+                $deltas = [];
 
-                $diff = array_diff($deltas, array_keys($items->getValue()));
-                if (empty($diff)) {
-                  $token_items = [];
-                  foreach ($deltas as $delta) {
-                    $token_items[] = $items[(int) $delta];
-                  }
-
-                  foreach ($token_items as $token_item) {
-                    if ($token_item->isEmpty()) {
-                      continue(2);
+                // Check if first segment is a wildcard for "all deltas".
+                if ($parts[0] === '*') {
+                  array_shift($parts);
+                  $deltas = $field_keys;
+                }
+                // Check if first segment is a delta specification
+                // (e.g., '0', '0-2', '0,2,4', '0-2,4,6-8').
+                elseif (preg_match('/^\d+(?:-\d+)?(?:,\d+(?:-\d+)?)*$/', $parts[0])) {
+                  foreach (explode(',', $parts[0]) as $segment) {
+                    if (preg_match('/^(\d+)-(\d+)$/', $segment, $matches)) {
+                      $start = (int) $matches[1];
+                      $end = (int) $matches[2];
+                      array_push($deltas, ...range($start, $end));
+                    }
+                    else {
+                      $deltas[] = (int) $segment;
                     }
                   }
 
-                  // Pass through to chained field tokens.
-                  $chained_data = array_merge($data, [
-                    ($token_type === 'property' ? '_field_tokens_items' : $token_data_type) => $token_items,
-                    'field'          => $field,
-                    'field_name'     => ($data['entity_type'] ?? '') . '-' . $field_name,
-                  ]);
-                  $chained_data[($data['entity_type'] ?? '') . '-' . $field_name] = $token_items;
+                  // Validate all requested deltas exist.
+                  if (array_diff($deltas, $field_keys)) {
+                    continue;
+                  }
 
-                  $replacements += $token_service->generate($token_data_type, [implode(':', $parts) => $original], $chained_data, $options, $bubbleable_metadata);
+                  array_shift($parts);
                 }
+                else {
+                  // No delta specified — use all items.
+                  // The first segment is the formatter/property name,
+                  // so we leave $parts intact for chained processing.
+                  $deltas = $field_keys;
+                }
+
+                $token_items = [];
+                foreach ($deltas as $delta) {
+                  $item = $items->get($delta);
+                  if ($item !== NULL) {
+                    $token_items[] = $item;
+                  }
+                }
+
+                foreach ($token_items as $token_item) {
+                  if ($token_item->isEmpty()) {
+                    continue(2);
+                  }
+                }
+
+                // Pass through to chained field tokens.
+                $field_key = ($data['entity_type'] ?? '') . '-' . $field_name;
+                $chained_data = array_merge($data, [
+                  ($token_type === 'property' ? '_field_tokens_items' : $token_data_type) => $token_items,
+                  'field'      => $field,
+                  'field_name' => $field_key,
+                ]);
+                $chained_data[$field_key] = $token_items;
+
+                $replacements += $token_service->generate($token_data_type, [implode(':', $parts) => $original], $chained_data, $options, $bubbleable_metadata);
               }
             }
           }
@@ -257,7 +292,7 @@ function field_tokens_tokens(string $type, array $tokens, array $data, array $op
     $view_mode = \Drupal::entityTypeManager()
       ->getStorage('entity_view_display')
       ->load($entity->getEntityTypeId() . '.' . $entity->bundle() . '.default');
-    $display = $view_mode->getComponent($field->get('field_name'));
+    $display = $view_mode->getComponent($field->getName()) ?? [];
     $display['field_definition'] = $field;
     $display['view_mode'] = 'default';
 
@@ -295,10 +330,10 @@ function field_tokens_tokens(string $type, array $tokens, array $data, array $op
         foreach ($items as &$item) {
           $item = $item->getValue();
         }
-        $cloned_entity->{$field->get('field_name')}->setValue($items);
+        $cloned_entity->{$field->getName()}->setValue($items);
 
         $output = '';
-        $element = $cloned_entity->{$field->get('field_name')}->view($display);
+        $element = $cloned_entity->{$field->getName()}->view($display);
         if ($element) {
           foreach (Element::children($element) as $delta) {
             $output .= \Drupal::service('renderer')

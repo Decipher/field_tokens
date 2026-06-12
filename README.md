@@ -34,6 +34,44 @@ The format is:
 
 e.g. `[node:field_image-property:0:entity:url]`
 
+## Delta specification
+
+The `DELTA(S)` position supports multiple formats for selecting which field
+item values to render:
+
+| Format | Example | Description |
+| ------- | ------- | ----------- |
+| Single delta | `0` | A single field item |
+| Comma-separated | `0,2,4` | Specific field items |
+| Range | `0-2` | A contiguous range of field items (0, 1, 2) |
+| Mixed | `0-2,4,6-8` | Combination of ranges and single deltas |
+| Wildcard | `*` | All field items |
+| Omitted | _(none)_ | All field items (delta position empty) |
+
+### Examples
+
+```text
+# Single value
+[node:field_image-formatted:0:image]
+[node:field_image-property:0:target_id]
+
+# Multiple specific values
+[node:field_image-formatted:0,2,4:image]
+
+# Range of values
+[node:field_image-formatted:0-3:image:image_style-thumbnail]
+
+# Mixed range and list
+[node:field_image-property:0-2,4:target_id]
+
+# All values (wildcard)
+[node:field_image-formatted:*:image]
+
+# All values (omit delta)
+[node:field_image-formatted:image]
+[node:field_image-property:target_id]
+```
+
 ## Custom Formatters integration
 
 Field tokens integrates with the

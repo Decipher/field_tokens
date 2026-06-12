@@ -167,4 +167,148 @@ class EntityTokenReplaceTest extends FieldTokensKernelTestBase {
     $this->assertEquals('Text field value', $text_result);
   }
 
+  /**
+   * Tests that omitting the delta renders all field values.
+   */
+  public function testNoDeltaReturnsAllValues(): void {
+    $node = $this->createNodeWithText([
+      ['value' => 'First', 'format' => 'plain_text'],
+      ['value' => 'Second', 'format' => 'plain_text'],
+    ]);
+
+    $result = \Drupal::token()->replace(
+      '[node:' . static::FIELD_NAME . '-formatted:text_default]',
+      ['node' => $node]
+    );
+
+    $this->assertStringContainsString('First', (string) $result);
+    $this->assertStringContainsString('Second', (string) $result);
+  }
+
+  /**
+   * Tests that the * wildcard renders all field values.
+   */
+  public function testWildcardDeltaReturnsAllValues(): void {
+    $node = $this->createNodeWithText([
+      ['value' => 'Alpha', 'format' => 'plain_text'],
+      ['value' => 'Beta', 'format' => 'plain_text'],
+    ]);
+
+    $result = \Drupal::token()->replace(
+      '[node:' . static::FIELD_NAME . '-formatted:*:text_default]',
+      ['node' => $node]
+    );
+
+    $this->assertStringContainsString('Alpha', (string) $result);
+    $this->assertStringContainsString('Beta', (string) $result);
+  }
+
+  /**
+   * Tests that a delta range expands to the correct values.
+   */
+  public function testDeltaRangeReturnsCorrectValues(): void {
+    $node = $this->createNodeWithText([
+      ['value' => 'Zero', 'format' => 'plain_text'],
+      ['value' => 'One', 'format' => 'plain_text'],
+      ['value' => 'Two', 'format' => 'plain_text'],
+    ]);
+
+    $result = \Drupal::token()->replace(
+      '[node:' . static::FIELD_NAME . '-formatted:0-2:text_default]',
+      ['node' => $node]
+    );
+
+    $this->assertStringContainsString('Zero', (string) $result);
+    $this->assertStringContainsString('One', (string) $result);
+    $this->assertStringContainsString('Two', (string) $result);
+  }
+
+  /**
+   * Tests that a mixed range and list syntax works correctly.
+   */
+  public function testDeltaMixedRangeAndList(): void {
+    $node = $this->createNodeWithText([
+      ['value' => 'A', 'format' => 'plain_text'],
+      ['value' => 'B', 'format' => 'plain_text'],
+      ['value' => 'C', 'format' => 'plain_text'],
+      ['value' => 'D', 'format' => 'plain_text'],
+      ['value' => 'E', 'format' => 'plain_text'],
+    ]);
+
+    // Select deltas 0, 2, 3, 4 (using range 2-4 + single 0).
+    $result = \Drupal::token()->replace(
+      '[node:' . static::FIELD_NAME . '-formatted:0,2-4:text_default]',
+      ['node' => $node]
+    );
+
+    $this->assertStringContainsString('A', (string) $result);
+    $this->assertStringNotContainsString('B', (string) $result);
+    $this->assertStringContainsString('C', (string) $result);
+    $this->assertStringContainsString('D', (string) $result);
+    $this->assertStringContainsString('E', (string) $result);
+  }
+
+  /**
+   * Tests that malformed delta specs (e.g., '0,,2') do NOT replace.
+   */
+  public function testMalformedDeltaDoubleCommaNoReplacement(): void {
+    $node = $this->createNodeWithText([
+      ['value' => 'Test', 'format' => 'plain_text'],
+      ['value' => 'Test 2', 'format' => 'plain_text'],
+    ]);
+
+    $token = '[node:' . static::FIELD_NAME . '-formatted:0,,2:text_default]';
+    $result = \Drupal::token()->replace($token, ['node' => $node]);
+
+    $this->assertEquals($token, $result);
+  }
+
+  /**
+   * Tests that malformed delta trailing hyphen (e.g., '0-') does NOT replace.
+   */
+  public function testMalformedDeltaTrailingHyphenNoReplacement(): void {
+    $node = $this->createNodeWithText([['value' => 'Test', 'format' => 'plain_text']]);
+
+    $token = '[node:' . static::FIELD_NAME . '-formatted:0-:text_default]';
+    $result = \Drupal::token()->replace($token, ['node' => $node]);
+
+    $this->assertEquals($token, $result);
+  }
+
+  /**
+   * Tests that malformed triple-hyphen (e.g., '1-2-3') does NOT replace.
+   */
+  public function testMalformedDeltaTripleHyphenNoReplacement(): void {
+    $node = $this->createNodeWithText([
+      ['value' => 'A', 'format' => 'plain_text'],
+      ['value' => 'B', 'format' => 'plain_text'],
+      ['value' => 'C', 'format' => 'plain_text'],
+    ]);
+
+    $token = '[node:' . static::FIELD_NAME . '-formatted:1-2-3:text_default]';
+    $result = \Drupal::token()->replace($token, ['node' => $node]);
+
+    $this->assertEquals($token, $result);
+  }
+
+  /**
+   * Tests that an inverse range (e.g., '2-0') returns items in reverse.
+   */
+  public function testInverseDeltaRangeReturnsReversed(): void {
+    $node = $this->createNodeWithText([
+      ['value' => 'Alpha', 'format' => 'plain_text'],
+      ['value' => 'Beta', 'format' => 'plain_text'],
+      ['value' => 'Gamma', 'format' => 'plain_text'],
+    ]);
+
+    $result = \Drupal::token()->replace(
+      '[node:' . static::FIELD_NAME . '-formatted:2-0:text_default]',
+      ['node' => $node]
+    );
+
+    $this->assertStringContainsString('Alpha', (string) $result);
+    $this->assertStringContainsString('Beta', (string) $result);
+    $this->assertStringContainsString('Gamma', (string) $result);
+  }
+
 }

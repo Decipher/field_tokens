@@ -153,4 +153,48 @@ abstract class FieldTokensKernelTestBase extends KernelTestBase {
     return $node;
   }
 
+  /**
+   * Creates a node with multiple image field values.
+   *
+   * @param int $count
+   *   Number of images to create.
+   *
+   * @return \Drupal\node\Entity\Node
+   *   The created node.
+   */
+  protected function createNodeWithMultipleImages(int $count = 2): Node {
+    $images = $this->getTestFiles('image');
+    $this->assertGreaterThanOrEqual($count, count($images),
+      "Need at least $count test images");
+
+    $values = [];
+    $index = 0;
+    foreach ($images as $image) {
+      if ($index >= $count) {
+        break;
+      }
+      $file = File::create([
+        'uri' => $image->uri ?? '',
+        'uid' => 1,
+        'status' => 1,
+      ]);
+      $file->save();
+
+      $values[] = [
+        'target_id' => $file->id(),
+        'alt' => 'Test image ' . $index,
+      ];
+      $index++;
+    }
+
+    $node = Node::create([
+      'type' => 'page',
+      'title' => $this->randomMachineName(),
+      'uid' => 1,
+      static::IMAGE_FIELD_NAME => $values,
+    ]);
+    $node->save();
+    return $node;
+  }
+
 }
