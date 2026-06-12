@@ -306,11 +306,10 @@ function field_tokens_tokens(string $type, array $tokens, array $data, array $op
       if (!empty($args[0])) {
         $formatter_name = array_shift($args);
         foreach ($args as $arg) {
-          $parts = explode('-', $arg, 2);
-          if (count($parts) === 2) {
-            [$name, $value] = $parts;
-            $formatter_settings[$name] = $value;
-          }
+          [$name, $value] = str_contains($arg, '-')
+            ? explode('-', $arg, 2)
+            : [$arg, NULL];
+          $formatter_settings[$name] = $value;
         }
       }
 
