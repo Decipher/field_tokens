@@ -92,7 +92,8 @@ function field_tokens_token_info(): array {
             $tokens['field_property-' . $field_type_name][$property_name]['dynamic'] = TRUE;
             // Normalize the constraint value. Drupal 11.4+ uses named arguments
             // for constraints, so EntityType is stored as ['type' => $value]
-            // instead of a bare string. @see drupal.org/node/3554746
+            // instead of a bare string.
+            // @see https://www.drupal.org/node/3554746
             $entity_type_constraint = $data_definition->getConstraint('EntityType');
             if (is_array($entity_type_constraint) && isset($entity_type_constraint['type'])) {
               $entity_type_constraint = $entity_type_constraint['type'];

@@ -237,6 +237,18 @@ class FormattedTokenReplaceTest extends FieldTokensKernelTestBase {
   }
 
   /**
+   * Tests formatted token with trailing colon ignores empty setting.
+   */
+  public function testFormattedTokenTrailingColon(): void {
+    $node = $this->createNodeWithText([['value' => 'Trailing colon test', 'format' => 'plain_text']]);
+
+    $token = '[node:' . static::FIELD_NAME . '-formatted:0:text_default:]';
+    $result = \Drupal::token()->replace($token, ['node' => $node]);
+
+    $this->assertStringContainsString('Trailing colon test', (string) $result);
+  }
+
+  /**
    * Tests formatted image token with mixed range and list syntax.
    */
   public function testFormattedImageMixedRange(): void {
