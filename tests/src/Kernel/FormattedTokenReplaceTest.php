@@ -225,6 +225,18 @@ class FormattedTokenReplaceTest extends FieldTokensKernelTestBase {
   }
 
   /**
+   * Tests formatted token with default formatter and valueless setting.
+   */
+  public function testFormattedTokenDefaultFormatterWithValuelessSetting(): void {
+    $node = $this->createNodeWithText([['value' => 'Default formatter with setting', 'format' => 'plain_text']]);
+
+    $token = '[node:' . static::FIELD_NAME . '-formatted:0::link_to_entity]';
+    $result = \Drupal::token()->replace($token, ['node' => $node]);
+
+    $this->assertStringContainsString('Default formatter with setting', (string) $result);
+  }
+
+  /**
    * Tests formatted image token with mixed range and list syntax.
    */
   public function testFormattedImageMixedRange(): void {
