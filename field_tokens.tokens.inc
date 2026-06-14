@@ -94,6 +94,7 @@ function field_tokens_token_info(): array {
             // for constraints, so EntityType is stored as ['type' => $value]
             // instead of a bare string.
             // @see https://www.drupal.org/node/3554746
+            /** @var string|array|null $entity_type_constraint */
             $entity_type_constraint = $data_definition->getConstraint('EntityType');
             if (is_array($entity_type_constraint) && isset($entity_type_constraint['type'])) {
               $entity_type_constraint = $entity_type_constraint['type'];
@@ -312,10 +313,10 @@ function field_tokens_tokens(string $type, array $tokens, array $data, array $op
       // Determine the formatter name. If the first segment is non-empty, it
       // is a custom formatter. If it is empty, use the default formatter but
       // still consume the segment so remaining args are parsed as settings.
-      if (isset($args[0]) && $args[0] !== '') {
+      if ($args[0] !== '') {
         $formatter_name = array_shift($args);
       }
-      elseif (isset($args[0]) && $args[0] === '') {
+      else {
         array_shift($args);
       }
 
