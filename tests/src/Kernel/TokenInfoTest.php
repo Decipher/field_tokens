@@ -114,6 +114,17 @@ class TokenInfoTest extends FieldTokensKernelTestBase {
   }
 
   /**
+   * Tests that formatter descriptions document valueless setting syntax.
+   */
+  public function testFormatterDescriptionDocumentsValuelessSettings(): void {
+    $info = \Drupal::moduleHandler()->invoke('field_tokens', 'token_info');
+
+    $image_token = $info['tokens']['formatted_field-image']['image'] ?? NULL;
+    $this->assertNotNull($image_token);
+    $this->assertStringContainsString('SETTING', $image_token['description']);
+  }
+
+  /**
    * Tests image entity reference property has type set.
    */
   public function testImageEntityPropertyHasType(): void {

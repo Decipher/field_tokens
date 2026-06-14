@@ -200,6 +200,55 @@ class FormattedTokenReplaceTest extends FieldTokensKernelTestBase {
   }
 
   /**
+   * Tests formatted token with a setting that has no value (no dash).
+   */
+  public function testFormattedTokenValuelessSetting(): void {
+    $node = $this->createNodeWithText([['value' => 'Valueless setting test', 'format' => 'plain_text']]);
+
+    $token = '[node:' . static::FIELD_NAME . '-formatted:0:text_default:link_to_entity]';
+    $result = \Drupal::token()->replace($token, ['node' => $node]);
+
+    $this->assertStringContainsString('Valueless setting test', (string) $result);
+  }
+
+  /**
+   * Tests formatted token with mixed valueless and valued settings.
+   */
+  public function testFormattedTokenMixedSettings(): void {
+    $node = $this->createNodeWithText([['value' => 'Mixed settings test content', 'format' => 'plain_text']]);
+
+    $token = '[node:' . static::FIELD_NAME . '-formatted:0:text_trimmed:trim_length-10:link_to_entity]';
+    $result = \Drupal::token()->replace($token, ['node' => $node]);
+
+    $this->assertStringContainsString('Mixed', (string) $result);
+    $this->assertStringNotContainsString('content', (string) $result);
+  }
+
+  /**
+   * Tests formatted token with default formatter and valueless setting.
+   */
+  public function testFormattedTokenDefaultFormatterWithValuelessSetting(): void {
+    $node = $this->createNodeWithText([['value' => 'Default formatter with setting', 'format' => 'plain_text']]);
+
+    $token = '[node:' . static::FIELD_NAME . '-formatted:0::link_to_entity]';
+    $result = \Drupal::token()->replace($token, ['node' => $node]);
+
+    $this->assertStringContainsString('Default formatter with setting', (string) $result);
+  }
+
+  /**
+   * Tests formatted token with trailing colon ignores empty setting.
+   */
+  public function testFormattedTokenTrailingColon(): void {
+    $node = $this->createNodeWithText([['value' => 'Trailing colon test', 'format' => 'plain_text']]);
+
+    $token = '[node:' . static::FIELD_NAME . '-formatted:0:text_default:]';
+    $result = \Drupal::token()->replace($token, ['node' => $node]);
+
+    $this->assertStringContainsString('Trailing colon test', (string) $result);
+  }
+
+  /**
    * Tests formatted image token with mixed range and list syntax.
    */
   public function testFormattedImageMixedRange(): void {

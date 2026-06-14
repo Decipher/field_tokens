@@ -61,7 +61,7 @@ function field_tokens_token_info(): array {
           foreach ($default_settings as $key => $default) {
             $settings[] = $key;
           }
-          $tokens['formatted_field-' . $field_type_name][$formatter_name]['description'] .= ' ' . t("Replace '?' with formatter settings in the following format: 'SETTING-VALUE:SETTING-VALUE-...'. Available settings: @settings", ['@settings' => implode(', ', $settings)]);
+          $tokens['formatted_field-' . $field_type_name][$formatter_name]['description'] .= ' ' . t("Replace '?' with formatter settings in the following format: 'SETTING-VALUE:SETTING-VALUE-...' or 'SETTING:SETTING-VALUE-...'. Available settings: @settings", ['@settings' => implode(', ', $settings)]);
         }
       }
     }
@@ -90,8 +90,15 @@ function field_tokens_token_info(): array {
 
           if ($data_definition instanceof DataReferenceDefinition) {
             $tokens['field_property-' . $field_type_name][$property_name]['dynamic'] = TRUE;
+            // Normalize the constraint value. Drupal 11.4+ uses named arguments
+            // for constraints, so EntityType is stored as ['type' => $value]
+            // instead of a bare string.
+            // @see https://www.drupal.org/node/3554746
             /** @var string|array|null $entity_type_constraint */
             $entity_type_constraint = $data_definition->getConstraint('EntityType');
+            if (is_array($entity_type_constraint) && isset($entity_type_constraint['type'])) {
+              $entity_type_constraint = $entity_type_constraint['type'];
+            }
             if (is_string($entity_type_constraint)) {
               $token_type = $token_entity_mapper->getTokenTypeForEntityType($entity_type_constraint);
               $tokens['field_property-' . $field_type_name][$property_name]['dynamic'] = FALSE;
@@ -303,15 +310,27 @@ function field_tokens_tokens(string $type, array $tokens, array $data, array $op
       $args = explode(':', (string) $args);
       $formatter_name = $field_type['default_formatter'];
       $formatter_settings = [];
-      if (!empty($args[0])) {
+      // Determine the formatter name. If the first segment is non-empty, it
+      // is a custom formatter. If it is empty, use the default formatter but
+      // still consume the segment so remaining args are parsed as settings.
+      if ($args[0] !== '') {
         $formatter_name = array_shift($args);
-        foreach ($args as $arg) {
-          $parts = explode('-', $arg, 2);
-          if (count($parts) === 2) {
-            [$name, $value] = $parts;
-            $formatter_settings[$name] = $value;
-          }
+      }
+      else {
+        array_shift($args);
+      }
+
+      // Parse all remaining segments as formatter settings. Segments without
+      // a dash separator are treated as valueless flags (e.g., 'link_to_entity'
+      // results in a NULL value rather than being discarded).
+      foreach ($args as $arg) {
+        if ($arg === '') {
+          continue;
         }
+        [$name, $value] = str_contains($arg, '-')
+          ? explode('-', $arg, 2)
+          : [$arg, NULL];
+        $formatter_settings[$name] = $value;
       }
 
       if (!is_null($formatter_name) && isset($formatters[$formatter_name]) && !empty($formatters[$formatter_name]['field_types']) && in_array($field_type['id'], $formatters[$formatter_name]['field_types'])) {
