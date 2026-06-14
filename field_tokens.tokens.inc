@@ -200,9 +200,15 @@ function field_tokens_tokens(string $type, array $tokens, array $data, array $op
   ];
 
   // Entity tokens.
-  if ($type === 'entity' && !empty($data['entity']) && $data['entity'] instanceof FieldableEntityInterface) {
-    /** @var \Drupal\Core\Entity\ContentEntityBase $entity */
+  if ($type === 'entity' && !empty($data['entity_type']) && !empty($data['entity']) && $data['entity'] instanceof FieldableEntityInterface) {
     $entity = $data['entity'];
+    if (!isset($options['langcode'])) {
+      // Set the active language in $options, so that it is passed along.
+      $options['langcode'] = $entity->language()->getId();
+    }
+    // Obtain the entity with the correct language.
+    $entity = \Drupal::service('entity.repository')->getTranslationFromContext($entity, $options['langcode']);
+
     $fields = $entity->getFieldDefinitions();
 
     /** @var \Drupal\Core\Field\FieldDefinitionInterface $field */
@@ -268,7 +274,7 @@ function field_tokens_tokens(string $type, array $tokens, array $data, array $op
                 }
 
                 // Pass through to chained field tokens.
-                $field_key = ($data['entity_type'] ?? '') . '-' . $field_name;
+                $field_key = $data['entity_type'] . '-' . $field_name;
                 $chained_data = array_merge($data, [
                   ($token_type === 'property' ? '_field_tokens_items' : $token_data_type) => $token_items,
                   'field'      => $field,
