@@ -311,4 +311,56 @@ class EntityTokenReplaceTest extends FieldTokensKernelTestBase {
     $this->assertStringContainsString('Gamma', (string) $result);
   }
 
+  /**
+   * Tests that entity-level tokens chain without triggering notices.
+   *
+   * Regression test for issue #3135128: "Undefined index: field_name".
+   * Ensures that field_name is always present in chained token data.
+   */
+  public function testChainedTokenDataContainsFieldName(): void {
+    $node = $this->createNodeWithText([['value' => 'Regression test', 'format' => 'plain_text']]);
+
+    // Formatted token — exercises the full chain through hook_tokens().
+    $formatted = \Drupal::token()->replace(
+      '[node:' . static::FIELD_NAME . '-formatted:0:text_default]',
+      ['node' => $node]
+    );
+    $this->assertStringContainsString('Regression test', (string) $formatted);
+
+    // Property token — exercises the property chain.
+    $property = \Drupal::token()->replace(
+      '[node:' . static::FIELD_NAME . '-property:0:value]',
+      ['node' => $node]
+    );
+    $this->assertEquals('Regression test', $property);
+
+    // Entity reference chain — exercises chained token generation where
+    // the Token module previously accessed field_name.
+    $image_node = $this->createNodeWithImage();
+    $chained = \Drupal::token()->replace(
+      '[node:' . static::IMAGE_FIELD_NAME . '-property:0:entity:fid]',
+      ['node' => $image_node]
+    );
+    $this->assertNotEquals('[node:' . static::IMAGE_FIELD_NAME . '-property:0:entity:fid]', $chained);
+  }
+
+  /**
+   * Tests that missing entity_type in data produces no replacement.
+   *
+   * Ensures the defensive guard added in the fix for #3135128 prevents
+   * processing when entity_type is absent from the token data.
+   */
+  public function testMissingEntityTypeGuard(): void {
+    $node = $this->createNodeWithText([['value' => 'Test', 'format' => 'plain_text']]);
+
+    $bubbleable = new BubbleableMetadata();
+    $tokens = [
+      static::FIELD_NAME . '-formatted:0:text_default' => '[node:' . static::FIELD_NAME . '-formatted:0:text_default]',
+    ];
+    // Entity present but entity_type missing — should not replace.
+    $result = \Drupal::moduleHandler()->invoke('field_tokens', 'tokens', ['entity', $tokens, ['entity' => $node], [], $bubbleable]);
+
+    $this->assertEmpty($result);
+  }
+
 }
