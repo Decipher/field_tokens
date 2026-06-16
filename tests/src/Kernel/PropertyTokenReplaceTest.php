@@ -168,7 +168,7 @@ class PropertyTokenReplaceTest extends FieldTokensKernelTestBase {
   }
 
   /**
-   * Tests image property token with wildcard.
+   * Tests property token with wildcard.
    */
   public function testPropertyImageWildcard(): void {
     $node = $this->createNodeWithMultipleImages(3);
@@ -179,6 +179,133 @@ class PropertyTokenReplaceTest extends FieldTokensKernelTestBase {
     $this->assertNotEmpty($result);
     $target_ids = explode(', ', (string) $result);
     $this->assertCount(3, $target_ids);
+  }
+
+  /**
+   * Tests array property token with a single integer key.
+   */
+  public function testPropertyTokenArrayIntegerKey(): void {
+    $node = $this->createNodeWithArray([
+      ['value' => ['a', 'b', 'c']],
+    ]);
+
+    $token = '[node:' . static::ARRAY_FIELD_NAME . '-property:0:value:1]';
+    $result = \Drupal::token()->replace($token, ['node' => $node]);
+
+    $this->assertEquals('b', $result);
+  }
+
+  /**
+   * Tests array property token with multi-level nested keys.
+   */
+  public function testPropertyTokenArrayNestedKeys(): void {
+    $node = $this->createNodeWithArray([
+      ['value' => [['a', 'b'], ['c', 'd']]],
+    ]);
+
+    $token = '[node:' . static::ARRAY_FIELD_NAME . '-property:0:value:1:0]';
+    $result = \Drupal::token()->replace($token, ['node' => $node]);
+
+    $this->assertEquals('c', $result);
+  }
+
+  /**
+   * Tests array property token with a string key.
+   */
+  public function testPropertyTokenArrayStringKey(): void {
+    $node = $this->createNodeWithArray([
+      ['value' => ['first' => 'alpha', 'second' => 'beta']],
+    ]);
+
+    $token = '[node:' . static::ARRAY_FIELD_NAME . '-property:0:value:second]';
+    $result = \Drupal::token()->replace($token, ['node' => $node]);
+
+    $this->assertEquals('beta', $result);
+  }
+
+  /**
+   * Tests array property token with a non-existent key produces no output.
+   */
+  public function testPropertyTokenArrayInvalidKey(): void {
+    $node = $this->createNodeWithArray([
+      ['value' => ['a', 'b']],
+    ]);
+
+    $token = '[node:' . static::ARRAY_FIELD_NAME . '-property:0:value:5]';
+    $result = \Drupal::token()->replace($token, ['node' => $node], ['clear' => TRUE]);
+
+    $this->assertEquals('', $result);
+  }
+
+  /**
+   * Tests array property token casts a scalar (int) leaf to string.
+   */
+  public function testPropertyTokenArrayScalarLeaf(): void {
+    $node = $this->createNodeWithArray([
+      ['value' => [42, 99]],
+    ]);
+
+    $token = '[node:' . static::ARRAY_FIELD_NAME . '-property:0:value:0]';
+    $result = \Drupal::token()->replace($token, ['node' => $node]);
+
+    $this->assertEquals('42', $result);
+  }
+
+  /**
+   * Tests array property token produces no output when the leaf is an array.
+   */
+  public function testPropertyTokenArrayLeafIsArray(): void {
+    $node = $this->createNodeWithArray([
+      ['value' => ['key' => ['nested' => 'val']]],
+    ]);
+
+    $token = '[node:' . static::ARRAY_FIELD_NAME . '-property:0:value:key]';
+    $result = \Drupal::token()->replace($token, ['node' => $node], ['clear' => TRUE]);
+
+    $this->assertEquals('', $result);
+  }
+
+  /**
+   * Tests array property token with no key segments drops array values.
+   */
+  public function testPropertyTokenArrayNoSegmentsDropped(): void {
+    $node = $this->createNodeWithArray([
+      ['value' => ['a', 'b']],
+    ]);
+
+    $token = '[node:' . static::ARRAY_FIELD_NAME . '-property:0:value]';
+    $result = \Drupal::token()->replace($token, ['node' => $node], ['clear' => TRUE]);
+
+    $this->assertEquals('', $result);
+  }
+
+  /**
+   * Tests array property token partial mismatch (string leaf, further key).
+   */
+  public function testPropertyTokenArrayPartialMismatch(): void {
+    $node = $this->createNodeWithArray([
+      ['value' => ['a', 'b']],
+    ]);
+
+    $token = '[node:' . static::ARRAY_FIELD_NAME . '-property:0:value:0:deep]';
+    $result = \Drupal::token()->replace($token, ['node' => $node], ['clear' => TRUE]);
+
+    $this->assertEquals('', $result);
+  }
+
+  /**
+   * Tests array property token across multiple items.
+   */
+  public function testPropertyTokenArrayMultipleItems(): void {
+    $node = $this->createNodeWithArray([
+      ['value' => ['first', 'second']],
+      ['value' => ['third', 'fourth']],
+    ]);
+
+    $token = '[node:' . static::ARRAY_FIELD_NAME . '-property:0,1:value:0]';
+    $result = \Drupal::token()->replace($token, ['node' => $node]);
+
+    $this->assertEquals('first, third', $result);
   }
 
 }

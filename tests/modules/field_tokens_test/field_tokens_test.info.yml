@@ -1,0 +1,5 @@
+name: 'Field Tokens Test'
+type: module
+description: 'Test field type with array property for Field Tokens.'
+package: Testing
+core_version_requirement: ^10.1 || ^11
