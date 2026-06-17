@@ -61,7 +61,13 @@ function field_tokens_token_info(): array {
           foreach ($default_settings as $key => $default) {
             $settings[] = $key;
           }
-          $tokens['formatted_field-' . $field_type_name][$formatter_name]['description'] .= ' ' . t("These follow the formatter name in the token. Provide each setting as a 'SETTING-VALUE' pair, joining multiple with ':' (for example 'image_style-large:image_link-content'). A setting that takes no value may be given as 'SETTING' alone. Available settings: @settings", ['@settings' => implode(', ', $settings)]);
+          $tokens['formatted_field-' . $field_type_name][$formatter_name]['description'] .= ' ' . t("Pass settings as 'SETTING-VALUE' pairs joined by ':'; 'SETTING' alone for a valueless flag. Available settings: @settings", ['@settings' => implode(', ', $settings)]);
+          // Mention dot notation only for formatters with array-valued
+          // settings (e.g. image_loading, trim_options), keeping the
+          // per-formatter description short in the token tree.
+          if (array_filter($default_settings, is_array(...))) {
+            $tokens['formatted_field-' . $field_type_name][$formatter_name]['description'] .= ' ' . t("Use dots in the key for nested settings (e.g. 'image_loading.attribute-eager').");
+          }
         }
       }
     }
@@ -326,23 +332,15 @@ function field_tokens_tokens(string $type, array $tokens, array $data, array $op
         array_shift($args);
       }
 
-      // Parse all remaining segments as formatter settings. Segments without
-      // a dash separator are treated as valueless flags (e.g., 'link_to_entity'
-      // results in a NULL value rather than being discarded).
-      foreach ($args as $arg) {
-        if ($arg === '') {
-          continue;
-        }
-        [$name, $value] = str_contains($arg, '-')
-          ? explode('-', $arg, 2)
-          : [$arg, NULL];
-        $formatter_settings[$name] = $value;
-      }
+      // Parse all remaining segments as formatter settings. See
+      // field_tokens_parse_formatter_settings() for the supported syntax,
+      // including dot notation for nested array settings.
+      $formatter_settings = field_tokens_parse_formatter_settings($args);
 
       if (!is_null($formatter_name) && isset($formatters[$formatter_name]) && !empty($formatters[$formatter_name]['field_types']) && in_array($field_type['id'], $formatters[$formatter_name]['field_types'])) {
         $default_settings = $formatter_manager->getDefaultSettings($formatter_name);
         if (!empty($default_settings)) {
-          $formatter_settings += $default_settings;
+          $formatter_settings = array_replace_recursive($default_settings, $formatter_settings);
         }
 
         // Inject formatter and formatter settings into $display.
@@ -434,4 +432,48 @@ function field_tokens_tokens(string $type, array $tokens, array $data, array $op
   }
 
   return $replacements;
+}
+
+/**
+ * Parses formatter setting segments into a settings array.
+ *
+ * Each segment is a colon-separated part of the token following the formatter
+ * name. Supported forms:
+ * - 'key-value': a flat key/value pair.
+ * - 'key': a valueless flag, parsed as NULL.
+ * - 'parent.child-value': a nested array setting, where dots in the key build
+ *   array depth. This supports formatters whose settings are themselves arrays
+ *   (e.g. the image formatter's 'image_loading.attribute' or Smart Trim's
+ *   'trim_options.text'). Dots are safe to repurpose here because no core or
+ *   contrib formatter uses dots in setting key names.
+ *
+ * @param string[] $args
+ *   The setting segments.
+ *
+ * @return array<string,mixed>
+ *   The parsed formatter settings.
+ */
+function field_tokens_parse_formatter_settings(array $args): array {
+  $settings = [];
+  foreach ($args as $arg) {
+    if ($arg === '') {
+      continue;
+    }
+    [$name, $value] = str_contains($arg, '-')
+      ? explode('-', $arg, 2)
+      : [$arg, NULL];
+    if (!str_contains((string) $name, '.')) {
+      $settings[$name] = $value;
+      continue;
+    }
+    // Dot notation: build a nested array from the leaf up, then recursively
+    // merge it so sibling nested keys accumulate rather than overwrite.
+    $keys = explode('.', (string) $name);
+    $nested = [$keys[count($keys) - 1] => $value];
+    for ($i = count($keys) - 2; $i >= 0; $i--) {
+      $nested = [$keys[$i] => $nested];
+    }
+    $settings = array_replace_recursive($settings, $nested);
+  }
+  return $settings;
 }

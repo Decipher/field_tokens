@@ -63,6 +63,44 @@ class FormattedTokenReplaceTest extends FieldTokensKernelTestBase {
   }
 
   /**
+   * Tests formatted image token with a nested formatter setting.
+   *
+   * The image formatter's 'image_loading' setting is an array. Dot notation
+   * ('image_loading.attribute-eager') must build the nested structure the
+   * formatter expects; if parsing stayed flat, the formatter would ignore it
+   * and render its default 'loading="lazy"'.
+   */
+  public function testFormattedTokenWithNestedFormatterSetting(): void {
+    $node = $this->createNodeWithImage();
+
+    $token = '[node:' . static::IMAGE_FIELD_NAME . '-formatted:0:image:image_loading.attribute-eager]';
+    $result = (string) \Drupal::token()->replace($token, ['node' => $node]);
+
+    $this->assertStringContainsString('loading="eager"', $result);
+    $this->assertStringNotContainsString('loading="lazy"', $result);
+  }
+
+  /**
+   * Tests Smart Trim with nested formatter settings (deep-merge regression).
+   *
+   * Smart Trim's 'more' setting has six sibling keys. Overriding one leaf
+   * via dot notation must not discard the others. Without
+   * array_replace_recursive the shallow union drops the entire default
+   * 'more' subtree and Smart Trim emits an 'Undefined array key' warning
+   * when accessing the missing 'class' key (line ~479, no ?? guard).
+   */
+  public function testFormattedTokenSmartTrimNestedSettings(): void {
+    $node = $this->createNodeWithText([['value' => 'This is some long text content for trimming', 'format' => 'plain_text']]);
+
+    $token = '[node:' . static::FIELD_NAME . '-formatted:0:smart_trim:trim_length-10:more.display_link-1:more.text-Continue]';
+    $result = (string) \Drupal::token()->replace($token, ['node' => $node]);
+
+    $this->assertStringContainsString('This is', $result);
+    $this->assertStringNotContainsString('long text', $result);
+    $this->assertStringContainsString('Continue', $result);
+  }
+
+  /**
    * Tests formatted token returns original for empty field.
    */
   public function testFormattedTokenEmptyField(): void {

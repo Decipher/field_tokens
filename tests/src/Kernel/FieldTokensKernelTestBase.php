@@ -52,6 +52,7 @@ abstract class FieldTokensKernelTestBase extends KernelTestBase {
     'token',
     'field_tokens',
     'field_tokens_test',
+    'smart_trim',
   ];
 
   /**
