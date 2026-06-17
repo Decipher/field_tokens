@@ -149,7 +149,7 @@ function field_tokens_token_info_alter(array &$data): void {
   // is only populated when the caller passes it in token data (e.g.
   // filefield_paths for [file:delta], or field_tokens' own property chaining).
   foreach ($token_entity_map as $token_type) {
-    if (isset($data['tokens'][$token_type])) {
+    if (isset($data['tokens'][$token_type]) && !array_key_exists('delta', $data['tokens'][$token_type])) {
       $data['tokens'][$token_type]['delta'] = [
         'name'        => t('Delta'),
         'description' => t('The delta (position) of this entity within its parent multi-value field. Only available when the calling code passes the delta in token data.'),
@@ -288,11 +288,16 @@ function field_tokens_tokens(string $type, array $tokens, array $data, array $op
                   }
                 }
 
-                foreach ($token_items as $token_item) {
+                foreach ($token_items as $token_idx => $token_item) {
                   if ($token_item->isEmpty()) {
-                    continue(2);
+                    // Drop the individual empty item rather than aborting the
+                    // whole replacement, so explicitly requested deltas (e.g.
+                    // '0,2') still resolve the non-empty ones.
+                    unset($token_items[$token_idx], $token_deltas[$token_idx]);
                   }
                 }
+                $token_items = array_values($token_items);
+                $token_deltas = array_values($token_deltas);
 
                 // Pass through to chained field tokens.
                 $field_key = $data['entity_type'] . '-' . $field_name;
@@ -302,6 +307,9 @@ function field_tokens_tokens(string $type, array $tokens, array $data, array $op
                   'field_name'        => $field_key,
                   '_field_tokens_deltas' => $token_deltas,
                 ]);
+                // Evict any stale 'delta' inherited from an outer context;
+                // per-item deltas are derived from '_field_tokens_deltas'.
+                unset($chained_data['delta']);
                 $chained_data[$field_key] = $token_items;
 
                 $replacements += $token_service->generate($token_data_type, [implode(':', $parts) => $original], $chained_data, $options, $bubbleable_metadata);
@@ -396,9 +404,9 @@ function field_tokens_tokens(string $type, array $tokens, array $data, array $op
 
       $args = explode(':', (string) $args);
       $property = array_shift($args);
+      $deltas_map = $data['_field_tokens_deltas'] ?? [];
       /** @var Drupal\Core\Field\FieldItemBase $item */
       foreach (($data['_field_tokens_items'] ?? []) as $idx => $item) {
-        $delta = ($data['_field_tokens_deltas'] ?? [])[$idx] ?? $idx;
         $properties = $field->getFieldStorageDefinition()
           ->getPropertyDefinitions();
         if (isset($properties[$property]) && $properties[$property] instanceof DataReferenceDefinition && !empty($args)) {
@@ -410,8 +418,12 @@ function field_tokens_tokens(string $type, array $tokens, array $data, array $op
             $token_type = $token_entity_mapper->getTokenTypeForEntityType($reference->getEntityTypeId());
             $chained_data = [
               $token_type => $reference,
-              'delta'     => $delta,
             ];
+            // Only forward a delta when one is actually known for this item.
+            // Falling back to the array index would report a wrong position.
+            if (isset($deltas_map[$idx])) {
+              $chained_data['delta'] = $deltas_map[$idx];
+            }
             $result = $token_service->generate($token_type, [implode(':', $args) => $original], $chained_data, $options, $bubbleable_metadata);
             if (isset($result[$original])) {
               $output[] = $result[$original];
@@ -444,18 +456,22 @@ function field_tokens_tokens(string $type, array $tokens, array $data, array $op
       }
 
       if (!empty($output)) {
-        $replacements[$original] = Markup::create(implode(', ', $output));
+        // A single value is returned as a native string so the type contract
+        // matches the direct entity-delta resolution; multiple values are
+        // joined with a comma and wrapped in Markup as usual.
+        $replacements[$original] = count($output) === 1
+          ? (string) reset($output)
+          : Markup::create(implode(', ', $output));
       }
     }
   }
 
   // Entity delta token — works for any entity token type (file, node, term…).
-  elseif (isset($data[$type]) && $data[$type] instanceof EntityInterface && array_key_exists('delta', $data)) {
-    foreach ($tokens as $name => $original) {
-      if ($name === 'delta') {
-        $replacements[$original] = (string) $data['delta'];
-      }
-    }
+  // isset() is intentional: it accepts delta = 0 while rejecting delta = NULL,
+  // so an explicit "no delta context" signal leaves the token unreplaced
+  // rather than silently emitting an empty string.
+  elseif (isset($data[$type], $data['delta'], $tokens['delta']) && $data[$type] instanceof EntityInterface) {
+    $replacements[$tokens['delta']] = (string) $data['delta'];
   }
 
   return $replacements;

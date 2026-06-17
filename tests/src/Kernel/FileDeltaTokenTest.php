@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Drupal\Tests\field_tokens\Kernel;
 
-use Drupal\file\Entity\File;
-
 /**
  * Tests [file:delta] token provided by field_tokens.
  *
@@ -55,6 +53,18 @@ class FileDeltaTokenTest extends FieldTokensKernelTestBase {
   }
 
   /**
+   * Tests that explicit delta => NULL leaves the token cleared.
+   *
+   * The token should not be silently replaced with an empty string.
+   */
+  public function testFileDeltaTokenWithExplicitNull(): void {
+    $file = $this->createTestFile();
+
+    $result = \Drupal::token()->replace('[file:delta]', ['file' => $file, 'delta' => NULL], ['clear' => TRUE]);
+    $this->assertEquals('', $result);
+  }
+
+  /**
    * Tests that field_tokens passes the correct delta when chaining file tokens.
    */
   public function testFileDeltaViaFieldPropertyChain(): void {
@@ -66,6 +76,13 @@ class FileDeltaTokenTest extends FieldTokensKernelTestBase {
     );
     $this->assertEquals('0', $result0);
 
+    // Middle element: catches off-by-one and first-element-repeated bugs.
+    $result1 = \Drupal::token()->replace(
+      '[node:' . static::IMAGE_FIELD_NAME . '-property:1:entity:delta]',
+      ['node' => $node],
+    );
+    $this->assertEquals('1', $result1);
+
     $result2 = \Drupal::token()->replace(
       '[node:' . static::IMAGE_FIELD_NAME . '-property:2:entity:delta]',
       ['node' => $node],
@@ -74,20 +91,24 @@ class FileDeltaTokenTest extends FieldTokensKernelTestBase {
   }
 
   /**
-   * Creates a test file entity.
+   * Tests that an empty item in a multi-delta selection is skipped.
+   *
+   * Replacement of the non-empty items should still proceed.
    */
-  private function createTestFile(): File {
-    $images = $this->getTestFiles('image');
-    $image = reset($images);
-    $this->assertNotFalse($image);
+  public function testMultiDeltaWithEmptyItem(): void {
+    $node = $this->createNodeWithMultipleImages(3);
 
-    $file = File::create([
-      'uri' => $image->uri ?? '',
-      'uid' => 1,
-      'status' => 1,
-    ]);
-    $file->save();
-    return $file;
+    // Make the item at delta 0 empty in-memory. Do not re-save: preSave
+    // filters empty items and would reindex the remaining items.
+    $node->get(static::IMAGE_FIELD_NAME)[0]->setValue(['target_id' => NULL]);
+
+    $result = \Drupal::token()->replace(
+      '[node:' . static::IMAGE_FIELD_NAME . '-property:0,2:entity:delta]',
+      ['node' => $node],
+    );
+    // Old behaviour (continue 2) aborted the whole replacement; the fix drops
+    // only the empty delta 0 and still resolves delta 2.
+    $this->assertEquals('2', $result);
   }
 
 }
