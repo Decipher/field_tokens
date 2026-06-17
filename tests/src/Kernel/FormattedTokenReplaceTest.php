@@ -81,6 +81,26 @@ class FormattedTokenReplaceTest extends FieldTokensKernelTestBase {
   }
 
   /**
+   * Tests Smart Trim with nested formatter settings (deep-merge regression).
+   *
+   * Smart Trim's 'more' setting has six sibling keys. Overriding one leaf
+   * via dot notation must not discard the others. Without
+   * array_replace_recursive the shallow union drops the entire default
+   * 'more' subtree and Smart Trim emits an 'Undefined array key' warning
+   * when accessing the missing 'class' key (line ~479, no ?? guard).
+   */
+  public function testFormattedTokenSmartTrimNestedSettings(): void {
+    $node = $this->createNodeWithText([['value' => 'This is some long text content for trimming', 'format' => 'plain_text']]);
+
+    $token = '[node:' . static::FIELD_NAME . '-formatted:0:smart_trim:trim_length-10:more.display_link-1:more.text-Continue]';
+    $result = (string) \Drupal::token()->replace($token, ['node' => $node]);
+
+    $this->assertStringContainsString('This is', $result);
+    $this->assertStringNotContainsString('long text', $result);
+    $this->assertStringContainsString('Continue', $result);
+  }
+
+  /**
    * Tests formatted token returns original for empty field.
    */
   public function testFormattedTokenEmptyField(): void {

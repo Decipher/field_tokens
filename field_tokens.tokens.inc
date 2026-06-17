@@ -340,7 +340,7 @@ function field_tokens_tokens(string $type, array $tokens, array $data, array $op
       if (!is_null($formatter_name) && isset($formatters[$formatter_name]) && !empty($formatters[$formatter_name]['field_types']) && in_array($field_type['id'], $formatters[$formatter_name]['field_types'])) {
         $default_settings = $formatter_manager->getDefaultSettings($formatter_name);
         if (!empty($default_settings)) {
-          $formatter_settings += $default_settings;
+          $formatter_settings = array_replace_recursive($default_settings, $formatter_settings);
         }
 
         // Inject formatter and formatter settings into $display.
