@@ -67,6 +67,21 @@ The format is:
 
 e.g. `[node:field_image-formatted:0,1:image:image_style-thumbnail]`
 
+### Nested formatter settings
+
+Some formatters have settings that are themselves arrays (for example the
+image formatter's `image_loading`, or Smart Trim's `trim_options`). Use dot
+notation in the setting key to set a nested value:
+
+```text
+[PREFIX:DELTA(S):FORMATTER:PARENT.CHILD-VALUE:...]
+```
+
+| Example | Description |
+| ------- | ----------- |
+| `[node:field_image-formatted:0:image:image_loading.attribute-eager]` | `image_loading`: `['attribute' => 'eager']` |
+| `[paragraph:field_body-formatted:0:smart_trim:trim_length-200:trim_options.text-text]` | Flat + nested settings |
+
 ## Field property tokens
 
 Field property tokens are tokens allowing access to field properties on

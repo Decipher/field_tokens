@@ -63,6 +63,24 @@ class FormattedTokenReplaceTest extends FieldTokensKernelTestBase {
   }
 
   /**
+   * Tests formatted image token with a nested formatter setting.
+   *
+   * The image formatter's 'image_loading' setting is an array. Dot notation
+   * ('image_loading.attribute-eager') must build the nested structure the
+   * formatter expects; if parsing stayed flat, the formatter would ignore it
+   * and render its default 'loading="lazy"'.
+   */
+  public function testFormattedTokenWithNestedFormatterSetting(): void {
+    $node = $this->createNodeWithImage();
+
+    $token = '[node:' . static::IMAGE_FIELD_NAME . '-formatted:0:image:image_loading.attribute-eager]';
+    $result = (string) \Drupal::token()->replace($token, ['node' => $node]);
+
+    $this->assertStringContainsString('loading="eager"', $result);
+    $this->assertStringNotContainsString('loading="lazy"', $result);
+  }
+
+  /**
    * Tests formatted token returns original for empty field.
    */
   public function testFormattedTokenEmptyField(): void {
