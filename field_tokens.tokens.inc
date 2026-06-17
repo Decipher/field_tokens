@@ -404,8 +404,25 @@ function field_tokens_tokens(string $type, array $tokens, array $data, array $op
         }
         elseif (isset($properties[$property])) {
           $value = $item->get($property)->getValue();
+          if (!empty($args) && is_array($value)) {
+            foreach ($args as $arg) {
+              if (is_array($value) && array_key_exists($arg, $value)) {
+                $value = $value[$arg];
+              }
+              else {
+                $value = NULL;
+                break;
+              }
+            }
+          }
+          elseif (!empty($args)) {
+            $value = NULL;
+          }
           if (is_string($value)) {
             $output[] = $value;
+          }
+          elseif (is_scalar($value)) {
+            $output[] = (string) $value;
           }
         }
       }

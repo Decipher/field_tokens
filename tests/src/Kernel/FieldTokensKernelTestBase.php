@@ -31,6 +31,11 @@ abstract class FieldTokensKernelTestBase extends KernelTestBase {
   protected const IMAGE_FIELD_NAME = 'field_test_image';
 
   /**
+   * The array field name used in tests.
+   */
+  protected const ARRAY_FIELD_NAME = 'field_test_array';
+
+  /**
    * Modules to enable.
    *
    * @var array<string>
@@ -46,6 +51,7 @@ abstract class FieldTokensKernelTestBase extends KernelTestBase {
     'image',
     'token',
     'field_tokens',
+    'field_tokens_test',
   ];
 
   /**
@@ -93,6 +99,20 @@ abstract class FieldTokensKernelTestBase extends KernelTestBase {
       'label' => 'Test Image',
     ])->save();
 
+    FieldStorageConfig::create([
+      'field_name' => static::ARRAY_FIELD_NAME,
+      'entity_type' => 'node',
+      'type' => 'field_tokens_test_array',
+      'cardinality' => FieldStorageConfig::CARDINALITY_UNLIMITED,
+    ])->save();
+
+    FieldConfig::create([
+      'field_name' => static::ARRAY_FIELD_NAME,
+      'entity_type' => 'node',
+      'bundle' => 'page',
+      'label' => 'Test Array',
+    ])->save();
+
     EntityViewDisplay::create([
       'targetEntityType' => 'node',
       'bundle' => 'page',
@@ -121,6 +141,22 @@ abstract class FieldTokensKernelTestBase extends KernelTestBase {
       'uid' => 1,
     ]);
     $node->set(static::FIELD_NAME, $values);
+    $node->save();
+    return $node;
+  }
+
+  /**
+   * Creates a node with array field values.
+   *
+   * Each value is an item array, e.g. ['value' => ['a', 'b', 'c']].
+   */
+  protected function createNodeWithArray(array $values): Node {
+    $node = Node::create([
+      'type' => 'page',
+      'title' => $this->randomMachineName(),
+      'uid' => 1,
+    ]);
+    $node->set(static::ARRAY_FIELD_NAME, $values);
     $node->save();
     return $node;
   }
