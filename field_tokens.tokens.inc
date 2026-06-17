@@ -143,6 +143,19 @@ function field_tokens_token_info_alter(array &$data): void {
   /** @var \Drupal\token\TokenEntityMapper $token_entity_mapper */
   $token_entity_mapper = \Drupal::service('token.entity_mapper');
   $token_entity_map = $token_entity_mapper->getEntityTypeMappings();
+
+  // Add a delta token to every registered entity token type. The delta is the
+  // zero-based position of the entity within its parent multi-value field and
+  // is only populated when the caller passes it in token data (e.g.
+  // filefield_paths for [file:delta], or field_tokens' own property chaining).
+  foreach ($token_entity_map as $token_type) {
+    if (isset($data['tokens'][$token_type])) {
+      $data['tokens'][$token_type]['delta'] = [
+        'name'        => t('Delta'),
+        'description' => t('The delta (position) of this entity within its parent multi-value field. Only available when the calling code passes the delta in token data.'),
+      ];
+    }
+  }
   foreach ($token_entity_map as $entity_type => $token_type) {
     if (isset($data['tokens'][$token_type])) {
       $bundles = $bundle_info->getBundleInfo($entity_type);
@@ -266,10 +279,12 @@ function field_tokens_tokens(string $type, array $tokens, array $data, array $op
                 }
 
                 $token_items = [];
+                $token_deltas = [];
                 foreach ($deltas as $delta) {
                   $item = $items->get($delta);
                   if ($item !== NULL) {
                     $token_items[] = $item;
+                    $token_deltas[] = $delta;
                   }
                 }
 
@@ -283,8 +298,9 @@ function field_tokens_tokens(string $type, array $tokens, array $data, array $op
                 $field_key = $data['entity_type'] . '-' . $field_name;
                 $chained_data = array_merge($data, [
                   ($token_type === 'property' ? '_field_tokens_items' : $token_data_type) => $token_items,
-                  'field'      => $field,
-                  'field_name' => $field_key,
+                  'field'             => $field,
+                  'field_name'        => $field_key,
+                  '_field_tokens_deltas' => $token_deltas,
                 ]);
                 $chained_data[$field_key] = $token_items;
 
@@ -381,7 +397,8 @@ function field_tokens_tokens(string $type, array $tokens, array $data, array $op
       $args = explode(':', (string) $args);
       $property = array_shift($args);
       /** @var Drupal\Core\Field\FieldItemBase $item */
-      foreach (($data['_field_tokens_items'] ?? []) as $item) {
+      foreach (($data['_field_tokens_items'] ?? []) as $idx => $item) {
+        $delta = ($data['_field_tokens_deltas'] ?? [])[$idx] ?? $idx;
         $properties = $field->getFieldStorageDefinition()
           ->getPropertyDefinitions();
         if (isset($properties[$property]) && $properties[$property] instanceof DataReferenceDefinition && !empty($args)) {
@@ -393,6 +410,7 @@ function field_tokens_tokens(string $type, array $tokens, array $data, array $op
             $token_type = $token_entity_mapper->getTokenTypeForEntityType($reference->getEntityTypeId());
             $chained_data = [
               $token_type => $reference,
+              'delta'     => $delta,
             ];
             $result = $token_service->generate($token_type, [implode(':', $args) => $original], $chained_data, $options, $bubbleable_metadata);
             if (isset($result[$original])) {
@@ -427,6 +445,15 @@ function field_tokens_tokens(string $type, array $tokens, array $data, array $op
 
       if (!empty($output)) {
         $replacements[$original] = Markup::create(implode(', ', $output));
+      }
+    }
+  }
+
+  // Entity delta token — works for any entity token type (file, node, term…).
+  elseif (isset($data[$type]) && $data[$type] instanceof EntityInterface && array_key_exists('delta', $data)) {
+    foreach ($tokens as $name => $original) {
+      if ($name === 'delta') {
+        $replacements[$original] = (string) $data['delta'];
       }
     }
   }

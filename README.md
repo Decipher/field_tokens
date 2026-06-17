@@ -20,6 +20,7 @@ Submit bug reports and feature suggestions, or track changes in the
 - Configuration
 - Formatted field tokens
 - Field property tokens
+- Entity delta token
 - Custom Formatters integration
 - Maintainers
 
@@ -154,6 +155,22 @@ item values to render:
 [node:field_image-formatted:image]
 [node:field_image-property:target_id]
 ```
+
+## Entity delta token
+
+Entity delta tokens expose the zero-based position of an entity within its
+parent multi-value field. A `delta` token is available on every entity token
+type (e.g. `[file:delta]`, `[node:delta]`, `[taxonomy_term:delta]`).
+
+The token is populated when the calling code passes the delta in token data. It
+is available automatically when accessed through a field property chain:
+
+| Example | Description |
+| ------- | ----------- |
+| `[node:field_images-property:0:entity:delta]` | Returns `0` — first item |
+| `[node:field_images-property:2:entity:delta]` | Returns `2` — third item |
+
+When no delta is passed in the token context the token returns an empty string.
 
 ## Custom Formatters integration
 
