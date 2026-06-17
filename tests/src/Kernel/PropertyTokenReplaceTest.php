@@ -308,4 +308,16 @@ class PropertyTokenReplaceTest extends FieldTokensKernelTestBase {
     $this->assertEquals('first, third', $result);
   }
 
+  /**
+   * Tests scalar property with extra args produces no output.
+   */
+  public function testPropertyTokenScalarWithExtraArgsNoOutput(): void {
+    $node = $this->createNodeWithText([['value' => 'hello', 'format' => 'plain_text']]);
+
+    $token = '[node:' . static::FIELD_NAME . '-property:0:value:extra]';
+    $result = \Drupal::token()->replace($token, ['node' => $node], ['clear' => TRUE]);
+
+    $this->assertEquals('', $result);
+  }
+
 }

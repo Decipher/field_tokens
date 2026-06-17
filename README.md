@@ -82,6 +82,26 @@ The format is:
 
 e.g. `[node:field_image-property:0:entity:url]`
 
+### Array property access
+
+When a field property stores an array (e.g., structured data, tablefield cells),
+additional colon-separated segments after the property name traverse into the
+value using each segment as a key:
+
+```text
+[PREFIX:DELTA(S):PROPERTY:KEY:KEY:...]
+```
+
+| Example | Description |
+| ------- | ----------- |
+| `[node:field_table-property:0:value:2:1]` | Integer keys — row 2, column 1 |
+| `[node:field_data-property:0:value:key]` | String key on associative array |
+| `[node:field_data-property:0:value:0:nested]` | Multi-level nesting |
+
+Both integer and string keys are supported. Scalar leaf values (`int`, `float`,
+`bool`) are cast to string. If the resolved leaf is still an array, no output is
+produced.
+
 ## Delta specification
 
 The `DELTA(S)` position supports multiple formats for selecting which field
