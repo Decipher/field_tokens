@@ -61,7 +61,7 @@ function field_tokens_token_info(): array {
           foreach ($default_settings as $key => $default) {
             $settings[] = $key;
           }
-          $tokens['formatted_field-' . $field_type_name][$formatter_name]['description'] .= ' ' . t("Replace '?' with formatter settings in the following format: 'SETTING-VALUE:SETTING-VALUE-...' or 'SETTING:SETTING-VALUE-...'. Available settings: @settings", ['@settings' => implode(', ', $settings)]);
+          $tokens['formatted_field-' . $field_type_name][$formatter_name]['description'] .= ' ' . t("These follow the formatter name in the token. Provide each setting as a 'SETTING-VALUE' pair, joining multiple with ':' (for example 'image_style-large:image_link-content'). A setting that takes no value may be given as 'SETTING' alone. Available settings: @settings", ['@settings' => implode(', ', $settings)]);
         }
       }
     }
@@ -148,7 +148,7 @@ function field_tokens_token_info_alter(array &$data): void {
               // Formatted field tokens.
               $data['tokens'][$token_type][$field_name . '-formatted'] = [
                 'name'        => t('@label: Formatted field', ['@label' => $field->label()]),
-                'description' => t("The formatted value of one or more @label field values. Replace '?' with a comma separated list of deltas (e.g., '0,1'), ranges (e.g., '0-3'), or a combination (e.g., '0-2,4,6-8'). Use '*' or omit '?' for all values.", ['@label' => $field->label()]),
+                'description' => t("The formatted value of one or more @label field values. The full token is '[entity:field_name-formatted:DELTA:FORMATTER:SETTING-VALUE:...]'. Replace DELTA with a single delta (e.g. '0'), a comma separated list (e.g. '0,1'), a range (e.g. '0-3'), or a combination (e.g. '0-2,4,6-8'); use '*' or omit it for all values. FORMATTER is a field formatter machine name and the optional SETTING-VALUE pairs pass formatter settings.", ['@label' => $field->label()]),
                 'type'        => 'formatted_field-' . $field->getType(),
                 'dynamic'     => TRUE,
               ];
@@ -156,7 +156,7 @@ function field_tokens_token_info_alter(array &$data): void {
               // Field property tokens.
               $data['tokens'][$token_type][$field_name . '-property'] = [
                 'name'        => t('@label: Field properties', ['@label' => $field->label()]),
-                'description' => t("Field properties from one or more @label field values. Replace '?' with a comma separated list of deltas (e.g., '0,1'), ranges (e.g., '0-3'), or a combination (e.g., '0-2,4,6-8'). Use '*' or omit '?' for all values.", ['@label' => $field->label()]),
+                'description' => t("Field properties from one or more @label field values. The full token is '[entity:field_name-property:DELTA:PROPERTY]'. Replace DELTA with a single delta (e.g. '0'), a comma separated list (e.g. '0,1'), a range (e.g. '0-3'), or a combination (e.g. '0-2,4,6-8'); use '*' or omit it for all values. PROPERTY is a field property such as 'value', 'target_id', or 'alt'.", ['@label' => $field->label()]),
                 'type'        => 'field_property-' . $field->getType(),
                 'dynamic'     => TRUE,
               ];
