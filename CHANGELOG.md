@@ -1,11 +1,11 @@
 # Changelog
 
-## 2.0.x-dev
+## 2.0.0-rc4 (2026-06-18)
 
 ### Features
 
 - [#3267442](https://www.drupal.org/project/field_tokens/issues/3267442):
-  Support ranges, wildcards, and omitted deltas in field tokens — e.g.
+  Support ranges, wildcards, and omitted deltas in field tokens, e.g.
   `[node:field_name-formatted:1:3]`, `[node:field_name-formatted:*]`, or
   `[node:field_name-formatted]` with configurable delimiter.
 - [#2826615](https://www.drupal.org/project/field_tokens/issues/2826615):
