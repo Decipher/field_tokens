@@ -21,6 +21,7 @@
         "php": ">=8.2"
     },
     "require-dev": {
+        "drupal/custom_formatters": "^4@beta",
         "drupal/smart_trim": "^2",
         "drupal/token": "^1"
     }

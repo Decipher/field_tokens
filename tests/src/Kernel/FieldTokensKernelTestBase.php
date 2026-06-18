@@ -166,16 +166,7 @@ abstract class FieldTokensKernelTestBase extends KernelTestBase {
    * Creates a node with an image field value.
    */
   protected function createNodeWithImage(): Node {
-    $images = $this->getTestFiles('image');
-    $image = reset($images);
-    $this->assertNotFalse($image);
-
-    $file = File::create([
-      'uri' => $image->uri ?? '',
-      'uid' => 1,
-      'status' => 1,
-    ]);
-    $file->save();
+    $file = $this->createTestFile();
 
     $node = Node::create([
       'type' => 'page',
@@ -188,6 +179,23 @@ abstract class FieldTokensKernelTestBase extends KernelTestBase {
     ]);
     $node->save();
     return $node;
+  }
+
+  /**
+   * Creates a test file entity.
+   */
+  protected function createTestFile(): File {
+    $images = $this->getTestFiles('image');
+    $image = reset($images);
+    $this->assertNotFalse($image);
+
+    $file = File::create([
+      'uri' => $image->uri ?? '',
+      'uid' => 1,
+      'status' => 1,
+    ]);
+    $file->save();
+    return $file;
   }
 
   /**

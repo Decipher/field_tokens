@@ -96,6 +96,45 @@ class CustomFormattersIntegrationTest extends FieldTokensKernelTestBase {
   }
 
   /**
+   * Tests that the alter forwards the delta from context.
+   *
+   * Both the direct [file:delta] and the property-chain
+   * [field_property:entity:delta] forms should resolve to the item's real
+   * position.
+   */
+  public function testAlterForwardsDelta(): void {
+    $node = $this->createNodeWithImage();
+    $item = $node->get(static::IMAGE_FIELD_NAME)[0];
+    $file = $node->get(static::IMAGE_FIELD_NAME)->entity;
+
+    $token_data = ['node' => $node, 'file' => $file];
+    $context = ['text' => '', 'item' => $item, 'delta' => 2];
+    \Drupal::moduleHandler()->alter('custom_formatters_token_data', $token_data, $context);
+
+    $result = \Drupal::token()->replace('[field_property:entity:delta]', $token_data, ['clear' => TRUE]);
+    $this->assertEquals('2', $result);
+    $this->assertSame([2], $token_data['_field_tokens_deltas']);
+
+    $result = \Drupal::token()->replace('[file:delta]', $token_data, ['clear' => TRUE]);
+    $this->assertEquals('2', $result);
+  }
+
+  /**
+   * Tests that the alter omits deltas when no delta is in context.
+   */
+  public function testAlterOmitsDeltasWhenContextMissing(): void {
+    $node = $this->createNodeWithImage();
+    $item = $node->get(static::IMAGE_FIELD_NAME)[0];
+    $file = $node->get(static::IMAGE_FIELD_NAME)->entity;
+
+    $token_data = ['node' => $node, 'file' => $file];
+    $context = ['text' => '', 'item' => $item];
+    \Drupal::moduleHandler()->alter('custom_formatters_token_data', $token_data, $context);
+
+    $this->assertArrayNotHasKey('_field_tokens_deltas', $token_data);
+  }
+
+  /**
    * Tests that the alter does nothing for non-FieldItemInterface items.
    */
   public function testAlterDoesNothingForNonFieldItem(): void {
