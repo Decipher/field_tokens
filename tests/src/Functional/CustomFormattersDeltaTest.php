@@ -78,8 +78,9 @@ class CustomFormattersDeltaTest extends FieldTokensTestBase {
 
     $values = [];
     for ($i = 0; $i < 3; $i++) {
+      $this->assertNotEmpty($images[$i]->uri, "Test image at index {$i} must provide a URI.");
       $file = File::create([
-        'uri' => $images[$i]->uri ?? '',
+        'uri' => $images[$i]->uri,
         'uid' => 1,
         'status' => 1,
       ]);

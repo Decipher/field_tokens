@@ -15,15 +15,15 @@ Submit bug reports and feature suggestions, or track changes in the
 
 ## Table of contents
 
-- Requirements
-- Installation
-- Configuration
-- Formatted field tokens
-- Field property tokens
-- Delta specification
-- Entity delta token
-- Custom Formatters integration
-- Maintainers
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Formatted field tokens](#formatted-field-tokens)
+- [Field property tokens](#field-property-tokens)
+- [Entity delta token](#entity-delta-token)
+- [Delta specification](#delta-specification)
+- [Custom Formatters integration](#custom-formatters-integration)
+- [Maintainers](#maintainers)
 
 ## Requirements
 
@@ -119,6 +119,36 @@ Both integer and string keys are supported. Scalar leaf values (`int`, `float`,
 `bool`) are cast to string. If the resolved leaf is still an array, no output is
 produced.
 
+## Entity delta token
+
+A `delta` token is available on every entity token type (e.g. `[file:delta]`,
+`[node:delta]`, `[taxonomy_term:delta]`). It returns the zero-based position of
+the entity within its parent multi-value field.
+
+The delta is provided at runtime by the calling code — for example,
+[filefield_paths](https://www.drupal.org/project/filefield_paths) passes each
+file's position when building filename patterns:
+
+```text
+[node:title]-[file:delta].[file:ffp-extension-original]
+```
+
+For a three-image field this produces `my-title-0.png`, `my-title-1.png`,
+`my-title-2.png`.
+
+In a [Custom Formatters](https://www.drupal.org/project/custom_formatters)
+HTML+Token formatter, the current item's delta is injected automatically into
+both the direct and property-chain forms:
+
+```text
+[file:delta]
+[field_property:entity:delta]
+```
+
+When no delta is available the token returns an empty string. Resolving
+multiple items (via `*`, a range, or an omitted delta) produces a
+comma-separated list (`"0, 1, 2"`).
+
 ## Delta specification
 
 The `DELTA(S)` position supports multiple formats for selecting which field
@@ -156,36 +186,6 @@ item values to render:
 [node:field_image-formatted:image]
 [node:field_image-property:target_id]
 ```
-
-## Entity delta token
-
-A `delta` token is available on every entity token type (e.g. `[file:delta]`,
-`[node:delta]`, `[taxonomy_term:delta]`). It returns the zero-based position of
-the entity within its parent multi-value field.
-
-The delta is provided at runtime by the calling code — for example,
-[filefield_paths](https://www.drupal.org/project/filefield_paths) passes each
-file's position when building filename patterns:
-
-```text
-[node:title]-[file:delta].[file:ffp-extension-original]
-```
-
-For a three-image field this produces `my-title-0.png`, `my-title-1.png`,
-`my-title-2.png`.
-
-In a [Custom Formatters](https://www.drupal.org/project/custom_formatters)
-HTML+Token formatter, the current item's delta is injected automatically into
-both the direct and property-chain forms:
-
-```text
-[file:delta]
-[field_property:entity:delta]
-```
-
-When no delta is available the token returns an empty string. Resolving
-multiple items (via `*`, a range, or an omitted delta) produces a
-comma-separated list (`"0, 1, 2"`).
 
 ## Custom Formatters integration
 
