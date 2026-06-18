@@ -98,8 +98,9 @@ class CustomFormattersIntegrationTest extends FieldTokensKernelTestBase {
   /**
    * Tests that the alter forwards the delta from context.
    *
-   * Chained entity tokens (e.g. [file:delta]) should resolve to the item's
-   * real position.
+   * Both the direct [file:delta] and the property-chain
+   * [field_property:entity:delta] forms should resolve to the item's real
+   * position.
    */
   public function testAlterForwardsDelta(): void {
     $node = $this->createNodeWithImage();
@@ -113,6 +114,9 @@ class CustomFormattersIntegrationTest extends FieldTokensKernelTestBase {
     $result = \Drupal::token()->replace('[field_property:entity:delta]', $token_data, ['clear' => TRUE]);
     $this->assertEquals('2', $result);
     $this->assertSame([2], $token_data['_field_tokens_deltas']);
+
+    $result = \Drupal::token()->replace('[file:delta]', $token_data, ['clear' => TRUE]);
+    $this->assertEquals('2', $result);
   }
 
   /**

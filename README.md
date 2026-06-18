@@ -175,10 +175,11 @@ For a three-image field this produces `my-title-0.png`, `my-title-1.png`,
 `my-title-2.png`.
 
 In a [Custom Formatters](https://www.drupal.org/project/custom_formatters)
-HTML+Token formatter, the current item's delta is injected automatically when
-using the property-chain form without a delta spec:
+HTML+Token formatter, the current item's delta is injected automatically into
+both the direct and property-chain forms:
 
 ```text
+[file:delta]
 [field_property:entity:delta]
 ```
 

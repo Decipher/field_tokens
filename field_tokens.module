@@ -28,6 +28,9 @@ function field_tokens_custom_formatters_token_data_alter(array &$token_data, arr
   // resolve to the item's real position rather than the array index.
   if (isset($context['delta'])) {
     $token_data['_field_tokens_deltas'] = [$context['delta']];
+    // Also expose delta directly so [entity:delta] tokens (e.g. [file:delta])
+    // resolve without needing a property-chain form.
+    $token_data['delta'] = $context['delta'];
   }
   $token_data['entity'] = $entity;
   $token_data['entity_type'] = $entity->getEntityTypeId();
