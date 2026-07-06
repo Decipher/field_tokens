@@ -36,7 +36,7 @@ class CustomFormattersDeltaTest extends FieldTokensTestBase {
     parent::setUp();
 
     // Make the image field created by the parent multi-value.
-    $storage = FieldStorageConfig::loadByName('node', $this->field->get('field_name'));
+    $storage = FieldStorageConfig::loadByName('node', $this->field->getName());
     $storage->setCardinality(FieldStorageConfig::CARDINALITY_UNLIMITED);
     $storage->save();
 
@@ -59,7 +59,7 @@ class CustomFormattersDeltaTest extends FieldTokensTestBase {
     // Set the view display to use the Custom Formatter.
     \Drupal::service('entity_display.repository')
       ->getViewDisplay('node', (string) $this->contentType->id(), 'default')
-      ->setComponent($this->field->get('field_name'), [
+      ->setComponent($this->field->getName(), [
         'type' => 'custom_formatters:delta_token_test',
         'label' => 'hidden',
       ])
@@ -70,7 +70,7 @@ class CustomFormattersDeltaTest extends FieldTokensTestBase {
    * Tests that delta tokens resolve correctly per-item via CF.
    */
   public function testDeltaTokenViaCustomFormatter(): void {
-    $field_name = $this->field->get('field_name');
+    $field_name = $this->field->getName();
 
     // Create 3 test images.
     $images = $this->getTestFiles('image');

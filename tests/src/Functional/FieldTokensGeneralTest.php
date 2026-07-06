@@ -36,7 +36,7 @@ class FieldTokensGeneralTest extends FieldTokensTestBase {
     $node = $this->createNodeWithImage();
 
     // Execute token_replace() with a Field token on a node with hidden fields.
-    $token = "[node:{$this->field->get('field_name')}-formatted:0:image]";
+    $token = "[node:{$this->field->getName()}-formatted:0:image]";
     $result = \Drupal::service('token')->replace($token, ['node' => $node]);
 
     // Ensure token replacement does not crash and produces output.

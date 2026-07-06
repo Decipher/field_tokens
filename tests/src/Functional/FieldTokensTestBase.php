@@ -69,7 +69,7 @@ abstract class FieldTokensTestBase extends ImageFieldTestBase {
 
     $node = $this->drupalCreateNode([
       'type' => $this->contentType->id(),
-      $this->field->get('field_name') => [
+      $this->field->getName() => [
         'target_id' => $file->id(),
         'alt' => $this->randomString(),
       ],

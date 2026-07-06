@@ -32,11 +32,11 @@ class FieldTokensFormattedTest extends FieldTokensTestBase {
       ],
       'module'   => 'image',
     ];
-    $element = $node->{$this->field->get('field_name')}->view($display);
+    $element = $node->{$this->field->getName()}->view($display);
     $output = \Drupal::service('renderer')->renderRoot($element['0']);
 
     // Image field with Image formatter.
-    $token = "[node:{$this->field->get('field_name')}-formatted:0:image]";
+    $token = "[node:{$this->field->getName()}-formatted:0:image]";
     $value = \Drupal::service('token')->replace($token, ['node' => $node]);
 
     // Check the token is rendered correctly.
