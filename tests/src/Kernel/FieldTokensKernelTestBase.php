@@ -65,7 +65,6 @@ abstract class FieldTokensKernelTestBase extends KernelTestBase {
     $this->installEntitySchema('node');
     $this->installEntitySchema('file');
     $this->installSchema('file', ['file_usage']);
-    $this->installSchema('system', ['sequences']);
     $this->installConfig(['system', 'field', 'node', 'text', 'image', 'filter', 'field_tokens']);
 
     User::create(['uid' => 1, 'name' => 'admin', 'status' => 1])->save();

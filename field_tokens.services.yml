@@ -1,0 +1,8 @@
+services:
+  Drupal\field_tokens\Hook\FieldTokensHooks:
+    class: Drupal\field_tokens\Hook\FieldTokensHooks
+    autowire: true
+
+  Drupal\field_tokens\Hook\FieldTokensTokensHooks:
+    class: Drupal\field_tokens\Hook\FieldTokensTokensHooks
+    autowire: true
