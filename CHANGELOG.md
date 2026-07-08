@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.0.0 (2026-07-08)
+
+First stable release of the 2.0.x line.
+
+No new changes since 2.0.0-rc4. See the 2.0.0-rc4 entry below for the full
+changelog of features, bug fixes, and improvements included in this release.
+
 ## 2.0.0-rc4 (2026-06-18)
 
 ### Features
